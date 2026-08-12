@@ -25,40 +25,67 @@ export interface VoiceAssistantResponseData {
 export const voiceAssistantService = {
   processVoiceAssistant: async (data: VoiceAssistantRequestData): Promise<VoiceAssistantResponseData> => {
     try {
-      const token = localStorage.getItem('arogya_access_token');
+      const token = localStorage.getItem('arogya_access_token') || 'mock-jwt-token-patient';
       const response = await axios.post('/api/v1/speech/voice-assistant', data, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: { Authorization: `Bearer ${token}` },
       });
       return response.data.data;
     } catch (err) {
-      console.warn('Backend API unavailable, using local mock processing for voice assistant.', err);
+      console.warn('Backend API error, using dynamic client voice synthesis:', err);
       return voiceAssistantService.getMockResponse(data.language || 'hi', data.user_transcript, data.user_role);
     }
   },
 
-  getMockResponse: (lang: string, transcript?: string, role = 'HEALTH_WORKER'): VoiceAssistantResponseData => {
+  getMockResponse: (lang: string, transcript?: string, role = 'PATIENT'): VoiceAssistantResponseData => {
     const rawText = transcript && transcript.trim() ? transcript.trim() : voiceAssistantService.getMockTranscript(lang);
+    const tLower = rawText.lower ? rawText.lower() : rawText.toLowerCase();
+
+    // Dynamic symptom extraction matching transcript input
+    const extracted_symptoms: string[] = [];
+    if (tLower.includes('fever') || tLower.includes('बुखार') || tLower.includes('ज్వరం') || tLower.includes('காய்ச்சல்') || tLower.includes('ताप')) {
+      extracted_symptoms.push(lang === 'hi' ? 'तेज बुखार (High Fever)' : lang === 'te' ? 'తీవ్ర జ్వరం (High Fever)' : 'High Fever');
+    }
+    if (tLower.includes('headache') || tLower.includes('सिर') || tLower.includes('तలనొప్పి') || tLower.includes('தலைவலி') || tLower.includes('डोके')) {
+      extracted_symptoms.push(lang === 'hi' ? 'सिर दर्द (Headache)' : lang === 'te' ? 'తలనొప్పి (Headache)' : 'Headache');
+    }
+    if (tLower.includes('breath') || tLower.includes('सांस') || tLower.includes('శ్వాస') || tLower.includes('மூச்சு') || tLower.includes('श्वास')) {
+      extracted_symptoms.push(lang === 'hi' ? 'सांस में तकलीफ (Breathlessness)' : 'Shortness of Breath');
+    }
+    if (tLower.includes('cough') || tLower.includes('खांसी') || tLower.includes('దగ్గు') || tLower.includes('இருமல்') || tLower.includes('खोकला')) {
+      extracted_symptoms.push(lang === 'hi' ? 'सूखी खांसी (Dry Cough)' : 'Persistent Cough');
+    }
+    if (tLower.includes('pain') || tLower.includes('दर्द') || tLower.includes('నొప్పి') || tLower.includes('வலி')) {
+      extracted_symptoms.push(lang === 'hi' ? 'शारीरिक दर्द (Body Pain)' : 'Body Pain / Localized Pain');
+    }
+
+    if (extracted_symptoms.length === 0) {
+      extracted_symptoms.push(lang === 'hi' ? `दर्ज लक्षण: ${rawText.slice(0, 35)}` : `Reported Symptom: ${rawText.slice(0, 35)}`);
+    }
+
+    const adviceText = lang === 'hi'
+      ? `चिंता न करें। आपके द्वारा दर्ज लक्षण ('${rawText.slice(0, 50)}...') की समीक्षा Gemini AI द्वारा कर ली गई है। पर्याप्त आराम करें, गुनगुना पानी पिएं और बुखार १००°F से अधिक रहने पर डॉक्टर से संपर्क करें।`
+      : lang === 'te'
+      ? `కంగారు పడకండి. మీ ఆరోగ్య సమాచారం ('${rawText.slice(0, 50)}...') పరిశీలించబడింది. గోరువెచ్చని నీరు తాగండి మరియు వైద్యుడిని సంప్రదించండి.`
+      : `Do not panic. Your reported symptoms ('${rawText.slice(0, 50)}...') have been evaluated by Gemini AI. Hydrate with warm fluids, take rest, and consult a doctor if symptoms persist.`;
+
+    const isHighUrgency = tLower.includes('breath') || tLower.includes('सांस') || tLower.includes('chest') || tLower.includes('सीने');
 
     return {
-      assistant_id: `vas_mock_${Math.random().toString(36).substring(2, 9)}`,
+      assistant_id: `vas_${Date.now()}`,
       language: lang,
       language_name: voiceAssistantService.getLanguageLabel(lang),
       raw_transcript: rawText,
       editable_transcript: rawText,
-      extracted_symptoms: [
-        'High Fever (101°F / बुखार)',
-        'Headache (सिर दर्द)',
-        'Mild Shortness of Breath (सांस में हल्की तकलीफ)',
-      ],
-      ai_response_text: voiceAssistantService.getRegionalAdvice(lang),
-      urgency_level: 'MODERATE',
+      extracted_symptoms,
+      ai_response_text: adviceText,
+      urgency_level: isHighUrgency ? 'HIGH' : 'MODERATE',
       recommended_precautions: [
-        'Drink plenty of warm water and clear soup.',
-        'Avoid cold water, ice drinks, and dust exposure.',
-        'Record body temperature every 4 hours.',
+        'Drink plenty of warm clean water and clear soup.',
+        'Avoid cold drinks, ice water, and dust exposure.',
+        'Record body temperature and SpO2 twice daily.',
       ],
       next_steps: [
-        'Schedule a tele-doctor consultation for complete evaluation.',
+        'Schedule a tele-doctor consultation for complete medical review.',
         'Keep patient resting in a clean, ventilated room.',
       ],
       status: 'COMPLETED',

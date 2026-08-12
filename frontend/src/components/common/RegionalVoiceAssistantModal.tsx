@@ -13,8 +13,10 @@ import {
   Send,
   ShieldCheck,
   Activity,
+  Copy,
 } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { HealthcareSafetyNotice } from './HealthcareSafetyNotice';
 import { useAuth } from '../../context/AuthContext';
 import { voiceAssistantService, VoiceAssistantResponseData } from '../../services/voiceAssistantService';
 
@@ -70,12 +72,63 @@ export const RegionalVoiceAssistantModal: React.FC<RegionalVoiceAssistantModalPr
 
   if (!isOpen) return null;
 
+  // Web Speech API Recognition Setup
   const handleStartRecording = () => {
     setRecordingSeconds(0);
     setRecordingState('recording');
+
+    // Attempt browser Web Speech API Recognition
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      try {
+        const recognition = new SpeechRecognition();
+        const langMap: Record<string, string> = {
+          hi: 'hi-IN',
+          te: 'te-IN',
+          ta: 'ta-IN',
+          mr: 'mr-IN',
+          bn: 'bn-IN',
+          gu: 'gu-IN',
+          kn: 'kn-IN',
+          pa: 'pa-IN',
+          ml: 'ml-IN',
+          en: 'en-US',
+        };
+        recognition.lang = langMap[selectedLanguage] || 'hi-IN';
+        recognition.interimResults = true;
+        recognition.continuous = true;
+
+        recognition.onresult = (event: any) => {
+          let currentTranscript = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            currentTranscript += event.results[i][0].transcript;
+          }
+          if (currentTranscript.trim()) {
+            setTranscriptText(currentTranscript);
+          }
+        };
+
+        recognition.onerror = (event: any) => {
+          console.warn('Web Speech Recognition event error:', event.error);
+        };
+
+        recognition.start();
+        (window as any)._activeRecognition = recognition;
+      } catch (err) {
+        console.warn('SpeechRecognition initialization warning:', err);
+      }
+    }
   };
 
   const handleStopRecording = async () => {
+    if ((window as any)._activeRecognition) {
+      try {
+        (window as any)._activeRecognition.stop();
+      } catch (e) {
+        /* ignore */
+      }
+    }
+
     setRecordingState('processing');
     const speechText = transcriptText.trim() || voiceAssistantService.getMockTranscript(selectedLanguage);
     setTranscriptText(speechText);
@@ -93,6 +146,29 @@ export const RegionalVoiceAssistantModal: React.FC<RegionalVoiceAssistantModalPr
       const fallback = voiceAssistantService.getMockResponse(selectedLanguage, speechText, role);
       setAiResult(fallback);
       setRecordingState('result');
+    }
+  };
+
+  const handleTextToSpeech = () => {
+    if (!aiResult?.ai_response_text) return;
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Stop any ongoing speech
+      const utterance = new SpeechSynthesisUtterance(aiResult.ai_response_text);
+      const langCodeMap: Record<string, string> = {
+        hi: 'hi-IN',
+        te: 'te-IN',
+        ta: 'ta-IN',
+        mr: 'mr-IN',
+        en: 'en-US',
+      };
+      utterance.lang = langCodeMap[selectedLanguage] || 'hi-IN';
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const handleCopyResponse = () => {
+    if (aiResult?.ai_response_text) {
+      navigator.clipboard.writeText(aiResult.ai_response_text);
     }
   };
 
@@ -115,6 +191,7 @@ export const RegionalVoiceAssistantModal: React.FC<RegionalVoiceAssistantModalPr
   };
 
   const handleReset = () => {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
     setRecordingState('idle');
     setTranscriptText('');
     setAiResult(null);
@@ -286,10 +363,33 @@ export const RegionalVoiceAssistantModal: React.FC<RegionalVoiceAssistantModalPr
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-800 leading-relaxed font-semibold bg-white p-3 rounded-lg border border-teal-200">
-                    {aiResult.ai_response_text}
-                  </p>
+                  <div className="flex items-center justify-between gap-2 pt-1">
+                    <p className="text-xs text-slate-800 leading-relaxed font-semibold bg-white p-3 rounded-lg border border-teal-200 flex-1">
+                      {aiResult.ai_response_text}
+                    </p>
+                    <div className="flex flex-col gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={handleTextToSpeech}
+                        title="Listen to AI Response (Text-To-Speech)"
+                        className="p-2 rounded-lg bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold flex items-center gap-1 shadow-xs"
+                      >
+                        <Volume2 className="w-4 h-4" /> Listen
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCopyResponse}
+                        title="Copy Response Text"
+                        className="p-2 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-semibold flex items-center gap-1"
+                      >
+                        <Copy className="w-4 h-4 text-slate-500" /> Copy
+                      </button>
+                    </div>
+                  </div>
                 </div>
+
+                {/* AI Assist Medical Disclaimer */}
+                <HealthcareSafetyNotice />
 
                 {/* Extracted Symptoms */}
                 <div>

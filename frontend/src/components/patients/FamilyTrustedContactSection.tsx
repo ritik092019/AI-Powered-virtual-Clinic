@@ -19,7 +19,7 @@ const DEFAULT_CONTACTS: TrustedContact[] = [
     id: 'cnt_01',
     name: 'Suraj Patel',
     relationship: 'Son',
-    phone: '+91 98234 99881',
+    phone: '+91 95557 36058',
     isPrimaryForSOS: true,
   },
   {

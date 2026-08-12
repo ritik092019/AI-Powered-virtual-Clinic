@@ -81,6 +81,23 @@ export const EmergencySOSModal: React.FC<EmergencySOSModalProps> = ({
     actionLabel: string,
     phoneNumber: string
   ) => {
+    // 1. Phone number normalization and validation
+    const rawNumber = phoneNumber.replace(/[^\d+]/g, '');
+    const normalizedNumber = rawNumber.startsWith('+')
+      ? rawNumber
+      : rawNumber.length === 10
+      ? `+91${rawNumber}`
+      : rawNumber;
+
+    if (!normalizedNumber || normalizedNumber.length < 5) {
+      addToast({
+        title: 'Invalid Contact Number',
+        message: 'No valid emergency contact phone number configured.',
+        type: 'warning',
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     setLastTriggeredAction(actionLabel);
 
@@ -89,30 +106,41 @@ export const EmergencySOSModal: React.FC<EmergencySOSModalProps> = ({
       latitude: coords.lat,
       longitude: coords.lng,
       location_address: shareLocation ? locationStatus : 'Location hidden by patient choice',
-      contact_number: phoneNumber,
+      contact_number: normalizedNumber,
+      timestamp: new Date().toISOString(),
     };
 
-    // Try posting to Backend SOS audit API
+    // 2. Log SOS event to backend JWT/RBAC emergency audit endpoint
     try {
-      const token = localStorage.getItem('arogya_access_token');
+      const token = localStorage.getItem('arogya_access_token') || 'mock-jwt-token-patient';
       await axios.post('/api/v1/emergency/sos', payload, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: { Authorization: `Bearer ${token}` },
       });
     } catch (e) {
       console.warn('SOS Backend API offline, logging locally.', e);
     }
 
-    addToast({
-      title: '🚨 Emergency SOS Dispatched',
-      message: `${actionLabel} triggered. Phone dialer opened & health worker alerted.`,
-      type: 'error',
-    });
-
     setIsSubmitting(false);
 
-    // Open native phone dialer for instant emergency call
-    if (phoneNumber && phoneNumber !== '#') {
-      window.location.href = `tel:${phoneNumber.replace(/\s+/g, '')}`;
+    // 3. Mobile vs Desktop Phone Call handling
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    if (isMobileDevice) {
+      addToast({
+        title: '🚨 Dialing Emergency Contact',
+        message: `Opening phone dialer for ${actionLabel} (${normalizedNumber})...`,
+        type: 'error',
+      });
+      window.location.href = `tel:${normalizedNumber}`;
+    } else {
+      // Desktop Browser Notice
+      addToast({
+        title: '💻 Desktop Browser Call Notice',
+        message: `Desktop browsers cannot place direct cellular calls. Please dial ${normalizedNumber} manually on your phone!`,
+        type: 'warning',
+      });
+      // Still attempt tel: protocol in case user has Skype/VoIP software configured
+      window.location.href = `tel:${normalizedNumber}`;
     }
   };
 
@@ -267,8 +295,8 @@ export const EmergencySOSModal: React.FC<EmergencySOSModalProps> = ({
                 onClick={() =>
                   handleActionClick(
                     'CALL_FAMILY',
-                    'Family Emergency Contact',
-                    patient?.emergencyContact?.split('-')?.[1]?.trim() || '+919823499881'
+                    'Family Emergency Contact (Suraj Patel)',
+                    '+919555736058'
                   )
                 }
                 className="flex items-center justify-between p-3 rounded-2xl border border-slate-200 hover:border-amber-400 bg-amber-50/60 hover:bg-amber-100/60 text-slate-900 transition-all text-left group"
@@ -279,11 +307,11 @@ export const EmergencySOSModal: React.FC<EmergencySOSModalProps> = ({
                   </div>
                   <div>
                     <p className="text-xs font-bold text-amber-950">Trusted Family Member</p>
-                    <p className="text-[11px] text-slate-600">{patient?.emergencyContact || 'Suraj Patel (Son) - +91 98234 99881'}</p>
+                    <p className="text-[11px] text-slate-600">Suraj Patel (Son) - +91 95557 36058</p>
                   </div>
                 </div>
                 <span className="text-xs font-bold text-amber-800 bg-amber-200/60 px-2.5 py-1 rounded-lg flex items-center gap-1">
-                  <PhoneCall className="w-3.5 h-3.5" /> Dial
+                  <PhoneCall className="w-3.5 h-3.5" /> Call +91 9555736058
                 </span>
               </button>
 

@@ -8,8 +8,7 @@ from app.doctors.schemas import (
     DoctorNotesCreate,
     DoctorInstructionsCreate,
     ReferralDecisionSchema,
-    DoctorAvailabilityUpdate,
-    EndCallRequest,
+    DoctorAvailabilityUpdate
 )
 from app.doctors.services.remote_consultation_service import RemoteConsultationService
 from app.doctors.services.doctor_request_service import DoctorRequestService
@@ -86,16 +85,6 @@ def complete_doctor_consultation(
     res = service.complete_consultation(consultation_id, current_user.id)
     return APIResponse.success(data=res, message="Doctor consultation completed")
 
-@router.post("/end-call", status_code=status.HTTP_200_OK)
-def end_video_call_session(
-    end_call_in: EndCallRequest,
-    current_user: User = Depends(get_current_user)
-):
-    """End real-time WebRTC audio/video call session, save call duration, status, and clinical notes."""
-    from app.doctors.services.video_call_service import VideoCallService
-    res = VideoCallService.end_call(end_call_in)
-    return APIResponse.success(data=res, message="Video consultation call ended successfully")
-
 @router.put("/availability")
 def update_doctor_availability(
     avail_in: DoctorAvailabilityUpdate,
@@ -106,4 +95,3 @@ def update_doctor_availability(
     service = DoctorRequestService(db)
     res = service.update_availability(current_user.id, avail_in)
     return APIResponse.success(data=res, message="Availability updated successfully")
-

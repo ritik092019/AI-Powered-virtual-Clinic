@@ -87,7 +87,7 @@ export const SettingsPage: React.FC = () => {
         </Card>
 
         {/* Low-Bandwidth & 2G/3G Optimization */}
-        <Card variant="default">
+        {/* <Card variant="default">
           <CardHeader className="border-b border-slate-100 pb-3">
             <CardTitle className="flex items-center gap-2 text-sm">
               <Zap className="w-4 h-4 text-amber-600" /> Low-Bandwidth & Rural Data Saver
@@ -122,7 +122,7 @@ export const SettingsPage: React.FC = () => {
               onChange={(e) => setCompressImages(e.target.checked)}
             />
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Offline Cache & Local Storage */}
         <Card variant="default">

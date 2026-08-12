@@ -1,0 +1,6 @@
+{
+  "name": "Arogya Health AI - Rural Healthcare Virtual Clinic",
+  "description": "AI-assisted rural healthcare virtual clinic platform designed for community health workers, doctors, and health administrators.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

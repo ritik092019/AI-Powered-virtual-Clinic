@@ -1,5 +1,5 @@
-from database.base import Base
-from database.models.enums import (
+from app.core.database import Base
+from app.common.enums import (
     UserRole,
     ConsultationStatus,
     RiskLevel,
@@ -7,12 +7,12 @@ from database.models.enums import (
     DoctorRequestStatus,
     NotificationType,
 )
-from database.models.user import User
-from database.models.patient import Patient
-from database.models.consultation import Consultation
-from database.models.ai_assessment import AIAssessment
-from database.models.doctor_request import DoctorRequest
-from database.models.notification import Notification
+from app.users.models import User
+from app.patients.models import Patient
+from app.consultations.models import Consultation
+from app.triage.models import AIAssessment
+from app.doctors.models import DoctorRequest
+from app.notifications.models import Notification
 
 __all__ = [
     "Base",

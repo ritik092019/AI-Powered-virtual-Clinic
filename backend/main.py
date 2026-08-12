@@ -1,11 +1,5 @@
-from fastapi import FastAPI
+from app.main import app
 
-app = FastAPI(title="Virtual Clinic API")
-
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to the AI-Powered Virtual Clinic API"}
-
-@app.get("/api/health")
-def health_check():
-    return {"status": "healthy"}
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

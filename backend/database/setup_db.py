@@ -7,7 +7,7 @@ backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
 
-from src.config import settings
+from app.core.config import settings
 from database.base import Base
 import database.models
 from database.seed import seed_database

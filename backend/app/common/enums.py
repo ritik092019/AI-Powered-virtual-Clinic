@@ -1,0 +1,54 @@
+import enum
+
+class UserRole(str, enum.Enum):
+    HEALTH_WORKER = "HEALTH_WORKER"
+    DOCTOR = "DOCTOR"
+    ADMIN = "ADMIN"
+
+class ConsultationStatus(str, enum.Enum):
+    DRAFT = "DRAFT"
+    PROCESSING = "PROCESSING"
+    AI_REVIEW_READY = "AI_REVIEW_READY"
+    AWAITING_DOCTOR = "AWAITING_DOCTOR"
+    DOCTOR_ACCEPTED = "DOCTOR_ACCEPTED"
+    IN_CONSULTATION = "IN_CONSULTATION"
+    REFERRED = "REFERRED"
+    COMPLETED = "COMPLETED"
+
+class RiskLevel(str, enum.Enum):
+    LOW = "LOW"
+    MODERATE = "MODERATE"
+    HIGH = "HIGH"
+    IMMEDIATE = "IMMEDIATE"
+
+class AIAssessmentStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    PROCESSING = "PROCESSING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+
+class ProcessingStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    PROCESSING = "PROCESSING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+
+class DoctorRequestStatus(str, enum.Enum):
+    REQUESTED = "REQUESTED"
+    ACCEPTED = "ACCEPTED"
+    IN_CONSULTATION = "IN_CONSULTATION"
+    COMPLETED = "COMPLETED"
+    REFERRED = "REFERRED"
+
+class DoctorAvailabilityStatus(str, enum.Enum):
+    AVAILABLE = "AVAILABLE"
+    BUSY = "BUSY"
+    OFFLINE = "OFFLINE"
+
+class NotificationType(str, enum.Enum):
+    DOCTOR_REQUEST = "DOCTOR_REQUEST"
+    CONSULTATION_UPDATE = "CONSULTATION_UPDATE"
+    DOCUMENT_PROCESSING = "DOCUMENT_PROCESSING"
+    AI_ANALYSIS = "AI_ANALYSIS"
+    WARNING = "WARNING"
+    SYSTEM = "SYSTEM"

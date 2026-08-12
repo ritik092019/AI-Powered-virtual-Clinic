@@ -4,13 +4,18 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
-# Add current directory and src to sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from src.config import settings
-from src.db.base import Base
-# Import all models to ensure metadata picks them up
-import src.models
+from app.core.config import settings
+from app.core.database import Base
+
+# Import all models to ensure metadata picks them up for Alembic
+import app.users.models
+import app.patients.models
+import app.consultations.models
+import app.triage.models
+import app.doctors.models
+import app.notifications.models
 
 config = context.config
 
@@ -20,7 +25,6 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:
-    """Run migrations in 'offline' mode."""
     url = settings.DATABASE_URL
     context.configure(
         url=url,
@@ -33,7 +37,6 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 def run_migrations_online() -> None:
-    """Run migrations in 'online' mode."""
     configuration = config.get_section(config.config_ini_section) or {}
     configuration["sqlalchemy.url"] = settings.DATABASE_URL
     

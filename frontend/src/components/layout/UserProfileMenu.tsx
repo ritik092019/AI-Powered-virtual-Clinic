@@ -134,7 +134,13 @@ export const UserProfileMenu: React.FC = () => {
                 {user.name}
               </span>
               <span className="text-[10px] font-medium text-teal-700">
-                {user.role === 'HEALTH_WORKER' ? 'ASHA Worker' : user.role === 'DOCTOR' ? 'Doctor' : 'Admin'}
+                {user.role === 'HEALTH_WORKER'
+                  ? 'ASHA Worker'
+                  : user.role === 'DOCTOR'
+                  ? 'Doctor'
+                  : user.role === 'PATIENT'
+                  ? 'Patient'
+                  : 'Admin'}
               </span>
             </div>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block" />

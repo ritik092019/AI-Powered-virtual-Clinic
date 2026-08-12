@@ -19,6 +19,7 @@ import { SettingsPage } from '../pages/SettingsPage';
 import { DoctorDashboardPage } from '../pages/DoctorDashboardPage';
 import { DoctorCasePage } from '../pages/DoctorCasePage';
 import { AdminDashboardPage } from '../pages/AdminDashboardPage';
+import { DoctorSpecialistManagementPage } from '../pages/DoctorSpecialistManagementPage';
 import { PatientPortalPage } from '../pages/PatientPortalPage';
 import { PatientDashboardPage } from '../pages/PatientDashboardPage';
 import { AccessDeniedPage } from '../pages/AccessDeniedPage';
@@ -65,6 +66,7 @@ export const AppRoutes: React.FC = () => {
           {/* Specialized Admin View */}
           <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
             <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+            <Route path="/admin/doctors" element={<DoctorSpecialistManagementPage />} />
           </Route>
         </Route>
       </Route>

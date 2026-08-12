@@ -2,6 +2,7 @@ import React from 'react';
 import { cn } from '../../utils/cn';
 import { ShieldAlert, AlertTriangle, Info } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
 
 export interface HealthcareSafetyNoticeProps {
   variant?: 'default' | 'warning' | 'critical';
@@ -15,6 +16,10 @@ export const HealthcareSafetyNotice: React.FC<HealthcareSafetyNoticeProps> = ({
   compact = false,
 }) => {
   const { t } = useLanguage();
+  const { role } = useAuth();
+
+  // Do not show clinical disclaimer notice to Patients
+  if (role === 'PATIENT') return null;
 
   const configs = {
     default: {

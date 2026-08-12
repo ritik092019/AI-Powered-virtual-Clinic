@@ -43,7 +43,9 @@ import {
   ShieldAlert,
   Clock,
   Filter,
+  AlertOctagon,
 } from 'lucide-react';
+import { EmergencyViewModal } from '../components/emergency/EmergencyViewModal';
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -60,6 +62,7 @@ export const DashboardPage: React.FC = () => {
   // Filter States
   const [activeTab, setActiveTab] = useState<'all' | 'today' | 'pending' | 'completed'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState<boolean>(false);
 
   // Fetch Dashboard Data
   const loadDashboardData = async () => {
@@ -152,6 +155,16 @@ export const DashboardPage: React.FC = () => {
             className={simulateError ? 'border-rose-300 text-rose-700 bg-rose-50' : 'text-slate-600'}
           >
             {simulateError ? 'Restore Mock Data' : 'Test Error State'}
+          </Button>
+
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setIsEmergencyModalOpen(true)}
+            leftIcon={<AlertOctagon className="w-4 h-4 animate-pulse" />}
+            className="bg-rose-600 hover:bg-rose-700 font-black text-white shadow-md border border-rose-500 animate-pulse"
+          >
+            Emergency Rapid Triage (Gemini AI)
           </Button>
 
           <Button
@@ -557,6 +570,12 @@ export const DashboardPage: React.FC = () => {
           </div>
         </>
       )}
+
+      {/* Emergency View Modal for Health Worker */}
+      <EmergencyViewModal
+        isOpen={isEmergencyModalOpen}
+        onClose={() => setIsEmergencyModalOpen(false)}
+      />
     </div>
   );
 };

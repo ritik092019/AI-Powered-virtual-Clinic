@@ -52,12 +52,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       allowedRoles: ['PATIENT'],
     },
     {
-      title: t('nav.patient_portal', 'My ABHA Health Record'),
-      path: '/patient-portal',
-      icon: <User className="w-5 h-5 text-teal-600" />,
-      allowedRoles: ['PATIENT'],
-    },
-    {
       title: t('nav.patients', 'Patient Registry'),
       path: '/patients',
       icon: <Users className="w-5 h-5" />,
@@ -67,7 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       title: t('nav.consultations', 'Consultations'),
       path: '/consultations',
       icon: <Activity className="w-5 h-5" />,
-      allowedRoles: ['HEALTH_WORKER', 'DOCTOR', 'ADMIN', 'PATIENT'],
+      allowedRoles: ['HEALTH_WORKER', 'DOCTOR', 'ADMIN'],
     },
     {
       title: t('nav.doctor_requests', 'Doctor Requests'),
@@ -102,6 +96,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       path: '/doctor/dashboard',
       icon: <Stethoscope className="w-5 h-5 text-indigo-500" />,
       allowedRoles: ['DOCTOR', 'ADMIN'],
+    },
+    {
+      title: 'Doctor Specialist Roster',
+      path: '/admin/doctors',
+      icon: <Users className="w-5 h-5 text-indigo-600" />,
+      allowedRoles: ['ADMIN'],
     },
     {
       title: 'District Admin Ops',

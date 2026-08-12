@@ -1,0 +1,3 @@
+"""
+Patient records domain module.
+"""

@@ -7,9 +7,12 @@ import { HealthcareSafetyNotice } from '../components/common/HealthcareSafetyNot
 import { OfflineBanner } from '../components/common/OfflineBanner';
 import { ToastContainer } from '../components/common/ToastContainer';
 
+import { useAuth } from '../context/AuthContext';
+
 export const AppLayout: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const { role } = useAuth();
 
   return (
     <div className="min-h-screen bg-slate-50 flex text-slate-900 font-sans antialiased">
@@ -35,10 +38,12 @@ export const AppLayout: React.FC = () => {
         {/* Top Navbar */}
         <Topbar onOpenMobileNav={() => setIsMobileNavOpen(true)} />
 
-        {/* Global Healthcare Safety Notice Top Banner */}
-        <div className="px-4 sm:px-6 pt-4 max-w-7xl w-full mx-auto">
-          <HealthcareSafetyNotice compact />
-        </div>
+        {/* Global Healthcare Safety Notice Top Banner (Clinical role only) */}
+        {role !== 'PATIENT' && (
+          <div className="px-4 sm:px-6 pt-4 max-w-7xl w-full mx-auto">
+            <HealthcareSafetyNotice compact />
+          </div>
+        )}
 
         {/* Route Page Container */}
         <main className="flex-1 px-4 sm:px-6 py-6 max-w-7xl w-full mx-auto focus:outline-none">

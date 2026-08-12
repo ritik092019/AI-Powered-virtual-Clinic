@@ -78,12 +78,7 @@ export const DocumentsPage: React.FC = () => {
     },
   ]);
 
-  // Load initial document for Patient role
-  useEffect(() => {
-    if (docs.length > 0 && !selectedDoc) {
-      handleSelectDocument(docs[0]);
-    }
-  }, [docs]);
+  // Remove auto-selection on page load so summary ONLY displays when patient explicitly selects or scans a document
 
   const handleSelectDocument = async (doc: OCRDoc) => {
     setSelectedDoc(doc);
@@ -245,7 +240,7 @@ export const DocumentsPage: React.FC = () => {
         {/* Right Column: Dedicated Patient AI Summary vs Standard OCR Extraction */}
         <div className="lg:col-span-6">
           {role === 'PATIENT' ? (
-            /* PATIENT ROLE: Dedicated Gemini AI Summary Card */
+            /* PATIENT ROLE: Dedicated Gemini AI Summary Card (Shows ONLY when a document is scanned/selected) */
             selectedDoc && patientSummary ? (
               <Card variant="default" className="border-teal-300 shadow-md">
                 <CardHeader className="bg-linear-to-r from-teal-900 via-teal-800 to-slate-900 text-white rounded-t-xl p-4">
@@ -261,31 +256,31 @@ export const DocumentsPage: React.FC = () => {
                     </span>
                   </div>
                   <CardDescription className="text-xs text-teal-100 mt-1">
-                    Plain-language medical summary, dosage instructions, and safety precautions.
+                    Easy plain-language medical summary, simple dosage steps, and safety precautions.
                   </CardDescription>
                 </CardHeader>
 
                 <CardContent className="p-4 space-y-4 text-xs">
-                  {/* Plain Language Summary */}
-                  <div className="p-3.5 rounded-xl bg-teal-50/70 border border-teal-200 space-y-1">
-                    <h4 className="font-bold text-teal-950 text-xs flex items-center gap-1.5">
-                      <Info className="w-4 h-4 text-teal-700" /> Report Summary Overview
+                  {/* Simple Plain Language Summary */}
+                  <div className="p-3.5 rounded-xl bg-teal-50/80 border border-teal-200 space-y-1">
+                    <h4 className="font-extrabold text-teal-950 text-xs flex items-center gap-1.5">
+                      <Info className="w-4 h-4 text-teal-700" /> What This Medical Report Means For You
                     </h4>
-                    <p className="text-xs text-slate-700 leading-relaxed">
+                    <p className="text-xs text-slate-800 leading-relaxed font-medium">
                       {patientSummary.patient_friendly_summary}
                     </p>
                   </div>
 
-                  {/* Key Clinical Findings */}
+                  {/* Key Findings in Simple Terms */}
                   <div>
                     <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <Activity className="w-4 h-4 text-indigo-600" /> Important Findings & Test Results
+                      <Activity className="w-4 h-4 text-indigo-600" /> Key Health Observations (Simple Terms)
                     </h4>
                     <div className="space-y-1.5">
                       {patientSummary.important_findings.map((finding, idx) => (
                         <div
                           key={idx}
-                          className="p-2.5 rounded-lg bg-indigo-50/50 border border-indigo-100 text-indigo-950 font-semibold flex items-center gap-2"
+                          className="p-2.5 rounded-lg bg-indigo-50/60 border border-indigo-100 text-indigo-950 font-semibold flex items-center gap-2"
                         >
                           <span className="w-2 h-2 rounded-full bg-indigo-600 shrink-0"></span>
                           <span>{finding}</span>
@@ -297,7 +292,7 @@ export const DocumentsPage: React.FC = () => {
                   {/* Detected Medications */}
                   <div>
                     <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <Pill className="w-4 h-4 text-emerald-600" /> Detected Prescribed Medications
+                      <Pill className="w-4 h-4 text-emerald-600" /> Detected Prescribed Medicines
                     </h4>
                     <div className="space-y-2">
                       {patientSummary.detected_medications.map((med, idx) => (
@@ -317,10 +312,10 @@ export const DocumentsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Medication Steps to Take */}
+                  {/* Easy Medication Steps to Take */}
                   <div>
                     <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <CheckSquare className="w-4 h-4 text-teal-600" /> Medication Instructions & Daily Steps
+                      <CheckSquare className="w-4 h-4 text-teal-600" /> Daily Medication Intake Steps
                     </h4>
                     <div className="space-y-2">
                       {patientSummary.medication_steps_to_take.map((step, idx) => (
@@ -337,7 +332,7 @@ export const DocumentsPage: React.FC = () => {
                   {/* Precautions & Warnings */}
                   <div>
                     <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <ShieldAlert className="w-4 h-4 text-rose-600" /> Precautions & Safety Advice
+                      <ShieldAlert className="w-4 h-4 text-rose-600" /> Important Health Precautions
                     </h4>
                     <div className="space-y-1.5">
                       {patientSummary.precautions.map((precaution, idx) => (
@@ -365,11 +360,23 @@ export const DocumentsPage: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
-            ) : (
-              <div className="p-8 border border-dashed border-slate-300 rounded-2xl bg-white text-center space-y-2 text-slate-500 text-xs">
+            ) : isLoadingSummary ? (
+              <div className="p-8 border border-dashed border-teal-300 rounded-2xl bg-white text-center space-y-2 text-slate-500 text-xs shadow-2xs">
                 <Sparkles className="w-8 h-8 text-teal-600 mx-auto animate-spin" />
-                <p className="font-bold text-slate-700">Generating Gemini AI Patient Summary...</p>
-                <p>Translating medical jargon and medication dosage steps for clear patient review.</p>
+                <p className="font-bold text-slate-800">Generating Simple Gemini AI Summary...</p>
+                <p>Translating medical report into clear plain language and step-by-step medication guidance.</p>
+              </div>
+            ) : (
+              <div className="p-8 border border-dashed border-slate-300 rounded-2xl bg-white text-center space-y-3 text-slate-500 text-xs">
+                <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-700 flex items-center justify-center mx-auto border border-teal-200">
+                  <Sparkles className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="font-extrabold text-sm text-slate-900">Select or Scan a Document</p>
+                  <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                    Click on any prescription or medical report from the list on the left (or upload a new scan) to view your easy-to-understand Gemini AI Summary.
+                  </p>
+                </div>
               </div>
             )
           ) : (

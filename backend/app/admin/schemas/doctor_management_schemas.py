@@ -1,8 +1,16 @@
 from typing import Optional, List, Dict, Any
 from uuid import UUID
 from datetime import datetime
-from pydantic import BaseModel, Field, EmailStr, ConfigDict
+from pydantic import BaseModel, Field, EmailStr, ConfigDict, field_validator
 from app.common.enums import UserRole, DoctorAvailabilityStatus
+
+def ensure_dr_prefix(v: Optional[str]) -> Optional[str]:
+    if not v:
+        return v
+    v_clean = v.strip()
+    if not (v_clean.lower().startswith("dr.") or v_clean.lower().startswith("dr ")):
+        return f"Dr. {v_clean}"
+    return v_clean
 
 class DoctorSpecialistCreate(BaseModel):
     name: str = Field(..., description="Doctor full name with title e.g. Dr. Rajesh Verma")
@@ -19,6 +27,11 @@ class DoctorSpecialistCreate(BaseModel):
     availability_status: DoctorAvailabilityStatus = Field(default=DoctorAvailabilityStatus.AVAILABLE)
     is_active: bool = Field(default=True, description="Account active status")
 
+    @field_validator("name", mode="before")
+    @classmethod
+    def validate_doctor_name(cls, v: str) -> str:
+        return ensure_dr_prefix(v) or v
+
 class DoctorSpecialistUpdate(BaseModel):
     name: Optional[str] = None
     phone: Optional[str] = None
@@ -31,6 +44,11 @@ class DoctorSpecialistUpdate(BaseModel):
     languages: Optional[List[str]] = None
     availability_status: Optional[DoctorAvailabilityStatus] = None
     is_active: Optional[bool] = None
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def validate_doctor_name(cls, v: Optional[str]) -> Optional[str]:
+        return ensure_dr_prefix(v)
 
 class DoctorStatusUpdate(BaseModel):
     is_active: bool = Field(..., description="Active status toggle")

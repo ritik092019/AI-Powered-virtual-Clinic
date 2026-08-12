@@ -49,3 +49,41 @@ class PatientTimelineResponse(BaseModel):
     patient_code: str
     name: str
     timeline: List[PatientTimelineEvent]
+
+class PatientAssignedDoctorInfo(BaseModel):
+    doctor_id: UUID
+    name: str = Field(..., description="Doctor full name with title e.g. Dr. Rajesh Verma")
+    specialization: str
+    qualifications: str
+    experience_years: int
+    license_number: str
+
+class PatientDoctorChatMessage(BaseModel):
+    id: str
+    sender_id: UUID
+    sender_name: str
+    sender_role: str = Field(..., description="DOCTOR or PATIENT")
+    message_text: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+class PatientDoctorChatMessageRequest(BaseModel):
+    consultation_id: UUID
+    message_text: str
+
+class PatientDoctorConsultationResponse(BaseModel):
+    consultation_id: UUID
+    patient_id: UUID
+    patient_name: str
+    doctor: Optional[PatientAssignedDoctorInfo] = None
+    status: str = Field(..., description="Waiting, Doctor Assigned, Scheduled, In Consultation, Completed, Follow-up Required")
+    chief_complaint: str
+    appointment_date_time: str
+    follow_up_date: Optional[str] = None
+    doctor_notes: Optional[str] = None
+    prescriptions: List[str] = Field(default_factory=list)
+    follow_up_instructions: List[str] = Field(default_factory=list)
+    chat_messages: List[PatientDoctorChatMessage] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    model_config = ConfigDict(from_attributes=True)
+

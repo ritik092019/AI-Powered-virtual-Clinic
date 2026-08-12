@@ -18,8 +18,8 @@ export const HealthcareSafetyNotice: React.FC<HealthcareSafetyNoticeProps> = ({
   const { t } = useLanguage();
   const { role } = useAuth();
 
-  // Do not show clinical disclaimer notice to Patients
-  if (role === 'PATIENT') return null;
+  // Do not show clinical disclaimer notice to Health Workers or Patients
+  if (role === 'HEALTH_WORKER' || role === 'PATIENT') return null;
 
   const configs = {
     default: {

@@ -4,6 +4,8 @@ import { Button } from '../components/ui/Button';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { SourceBadge } from '../components/common/SourceBadge';
 import { HealthcareSafetyNotice } from '../components/common/HealthcareSafetyNotice';
+import { RegionalVoiceAssistantModal } from '../components/common/RegionalVoiceAssistantModal';
+import { PatientDoctorConsultationSection } from '../components/patients/PatientDoctorConsultationSection';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useNotification } from '../context/NotificationContext';
@@ -33,6 +35,7 @@ import {
   UploadCloud,
   ChevronRight,
   ShieldAlert,
+  Mic,
 } from 'lucide-react';
 
 export const PatientDashboard: React.FC = () => {
@@ -48,13 +51,14 @@ export const PatientDashboard: React.FC = () => {
 
   // New appointment modal state
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isVoiceAssistantOpen, setIsVoiceAssistantOpen] = useState(false);
   const [newAptType, setNewAptType] = useState<'tele_consultation' | 'in_person_visit'>('tele_consultation');
   const [newAptDate, setNewAptDate] = useState('2026-08-20');
   const [newAptTime, setNewAptTime] = useState('11:00 AM');
   const [newAptComplaint, setNewAptComplaint] = useState('');
 
   // Tab selection
-  const [activeTab, setActiveTab] = useState<'overview' | 'history' | 'appointments' | 'documents'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'doctor_consultation' | 'history' | 'appointments' | 'documents'>('overview');
 
   useEffect(() => {
     async function loadPatientDashboard() {
@@ -203,6 +207,15 @@ export const PatientDashboard: React.FC = () => {
             <Button
               variant="outline"
               size="sm"
+              leftIcon={<Mic className="w-4 h-4 text-amber-300 animate-pulse" />}
+              onClick={() => setIsVoiceAssistantOpen(true)}
+              className="bg-amber-400/20 border-amber-400/40 text-amber-200 hover:bg-amber-400/30 font-bold shrink-0 text-xs"
+            >
+              Regional Voice Assistant 🎤
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               leftIcon={<Download className="w-4 h-4" />}
               onClick={() => window.print()}
               className="bg-white/10 border-white/20 text-white hover:bg-white/20 font-bold shrink-0 text-xs"
@@ -287,22 +300,33 @@ export const PatientDashboard: React.FC = () => {
       </div>
 
       {/* Navigation Filter Tabs */}
-      <div className="flex border-b border-slate-200 space-x-2 text-sm font-semibold">
+      <div className="flex border-b border-slate-200 space-x-2 text-sm font-semibold flex-wrap">
         <button
           onClick={() => setActiveTab('overview')}
           className={`pb-2.5 px-3 border-b-2 transition-colors ${
             activeTab === 'overview'
-              ? 'border-teal-600 text-teal-800'
+              ? 'border-teal-600 text-teal-800 font-extrabold'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
           Portal Overview
         </button>
         <button
+          onClick={() => setActiveTab('doctor_consultation')}
+          className={`pb-2.5 px-3 border-b-2 transition-colors flex items-center gap-1.5 ${
+            activeTab === 'doctor_consultation'
+              ? 'border-purple-600 text-purple-900 font-extrabold'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Stethoscope className="w-4 h-4 text-purple-600" />
+          Doctor Consultations & Advice
+        </button>
+        <button
           onClick={() => setActiveTab('history')}
           className={`pb-2.5 px-3 border-b-2 transition-colors ${
             activeTab === 'history'
-              ? 'border-teal-600 text-teal-800'
+              ? 'border-teal-600 text-teal-800 font-extrabold'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -312,7 +336,7 @@ export const PatientDashboard: React.FC = () => {
           onClick={() => setActiveTab('appointments')}
           className={`pb-2.5 px-3 border-b-2 transition-colors ${
             activeTab === 'appointments'
-              ? 'border-teal-600 text-teal-800'
+              ? 'border-teal-600 text-teal-800 font-extrabold'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -322,7 +346,7 @@ export const PatientDashboard: React.FC = () => {
           onClick={() => setActiveTab('documents')}
           className={`pb-2.5 px-3 border-b-2 transition-colors ${
             activeTab === 'documents'
-              ? 'border-teal-600 text-teal-800'
+              ? 'border-teal-600 text-teal-800 font-extrabold'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -486,6 +510,9 @@ export const PatientDashboard: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* TAB CONTENT: DOCTOR CONSULTATION & ADVICE */}
+      {activeTab === 'doctor_consultation' && <PatientDoctorConsultationSection />}
 
       {/* TAB CONTENT: MEDICAL HISTORY */}
       {activeTab === 'history' && (
@@ -729,6 +756,12 @@ export const PatientDashboard: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Regional Language Voice Assistant Modal */}
+      <RegionalVoiceAssistantModal
+        isOpen={isVoiceAssistantOpen}
+        onClose={() => setIsVoiceAssistantOpen(false)}
+      />
     </div>
   );
 };

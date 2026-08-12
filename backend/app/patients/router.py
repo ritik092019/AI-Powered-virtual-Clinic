@@ -81,3 +81,26 @@ def get_patient_timeline(
     service = PatientService(db)
     timeline = service.get_patient_timeline(patient_id)
     return APIResponse.success(data=timeline)
+
+@router.get("/my-consultations", status_code=status.HTTP_200_OK)
+def get_patient_doctor_consultations(
+    current_user: User = Depends(get_current_user)
+):
+    """Retrieve logged-in patient's assigned doctor consultations, appointment details, and doctor notes."""
+    from app.patients.services.patient_consultation_service import PatientConsultationService
+    patient_id = current_user.id
+    res = PatientConsultationService.get_patient_doctor_consultations(patient_id)
+    return APIResponse.success(data=res, message="Patient doctor consultations retrieved")
+
+@router.post("/consultations/chat", status_code=status.HTTP_200_OK)
+def send_patient_doctor_chat(
+    req: PatientDoctorChatMessageRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Send real-time chat message from patient to assigned doctor."""
+    from app.patients.services.patient_consultation_service import PatientConsultationService
+    from app.patients.schemas import PatientDoctorChatMessageRequest
+    patient_id = current_user.id
+    res = PatientConsultationService.send_chat_message(patient_id, req)
+    return APIResponse.success(data=res, message="Chat message sent to assigned doctor")
+

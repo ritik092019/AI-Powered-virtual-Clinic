@@ -3,6 +3,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../co
 import { Button } from '../components/ui/Button';
 import { useNotification } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
+import { ActivityTimeline } from '../components/dashboard/ActivityTimeline';
+import { MOCK_ACTIVITY_TIMELINE } from '../mock';
 import {
   Bell,
   CheckCheck,
@@ -11,6 +13,7 @@ import {
   Check,
   Clock,
   Info,
+  Sparkles,
 } from 'lucide-react';
 
 export interface SimplePatientNotification {
@@ -266,6 +269,25 @@ export const NotificationsPage: React.FC = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Recent Application Activity Section */}
+      <Card variant="default">
+        <CardHeader className="pb-3 border-b border-slate-100">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-bold flex items-center gap-2">
+              <span>Recent Application Activity</span>
+            </CardTitle>
+            <Sparkles className="w-4 h-4 text-teal-600" />
+          </div>
+          <CardDescription className="text-xs">
+            Real-time operational log of registrations, consultations, OCR scans, and doctor requests.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="pt-4">
+          <ActivityTimeline events={MOCK_ACTIVITY_TIMELINE} />
+        </CardContent>
+      </Card>
     </div>
   );
 };

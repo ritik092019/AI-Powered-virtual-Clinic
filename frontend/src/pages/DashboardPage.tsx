@@ -24,6 +24,7 @@ import { Button } from '../components/ui/Button';
 import { Tabs } from '../components/ui/Tabs';
 import { Input } from '../components/ui/Input';
 import { HealthcareSafetyNotice } from '../components/common/HealthcareSafetyNotice';
+import { RegionalVoiceAssistantModal } from '../components/common/RegionalVoiceAssistantModal';
 
 // Icons
 import {
@@ -44,6 +45,7 @@ import {
   Clock,
   Filter,
   AlertOctagon,
+  Mic,
 } from 'lucide-react';
 import { EmergencyViewModal } from '../components/emergency/EmergencyViewModal';
 
@@ -63,6 +65,7 @@ export const DashboardPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'today' | 'pending' | 'completed'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState<boolean>(false);
+  const [isVoiceAssistantOpen, setIsVoiceAssistantOpen] = useState<boolean>(false);
 
   // Fetch Dashboard Data
   const loadDashboardData = async () => {
@@ -155,6 +158,16 @@ export const DashboardPage: React.FC = () => {
             className={simulateError ? 'border-rose-300 text-rose-700 bg-rose-50' : 'text-slate-600'}
           >
             {simulateError ? 'Restore Mock Data' : 'Test Error State'}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsVoiceAssistantOpen(true)}
+            leftIcon={<Mic className="w-4 h-4 text-teal-600 animate-pulse" />}
+            className="border-teal-300 text-teal-900 bg-teal-50 hover:bg-teal-100 font-bold"
+          >
+            Regional Voice Assistant 🎤
           </Button>
 
           <Button
@@ -256,64 +269,7 @@ export const DashboardPage: React.FC = () => {
         />
       </div>
 
-      {/* Section 2: Prominent Quick Actions */}
-      <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="font-bold text-slate-900 text-sm sm:text-base tracking-tight">
-              Frontline Quick Actions
-            </h2>
-            <p className="text-xs text-slate-500">
-              One-tap workflows for ASHA & ANM healthcare workers.
-            </p>
-          </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-teal-800 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200 hidden sm:inline">
-            Phase 1.2 Interactive Shortcuts
-          </span>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5 pt-1">
-          <QuickActionCard
-            title="Register Patient"
-            description="Create ABHA ID profile"
-            icon={<UserPlus className="w-5 h-5" />}
-            path="/patients"
-            variant="primary"
-          />
-
-          <QuickActionCard
-            title="Start Consultation"
-            description="Log symptoms & vitals"
-            icon={<FilePlus className="w-5 h-5" />}
-            path="/consultations"
-            variant="secondary"
-          />
-
-          <QuickActionCard
-            title="Upload Report"
-            description="Scan lab or prescription OCR"
-            icon={<Upload className="w-5 h-5" />}
-            path="/documents"
-            variant="secondary"
-          />
-
-          <QuickActionCard
-            title="View Patients"
-            description="Browse medical history"
-            icon={<Users className="w-5 h-5" />}
-            path="/patients"
-            variant="secondary"
-          />
-
-          <QuickActionCard
-            title="Request Doctor"
-            description="Escalate to tele-doctor"
-            icon={<Stethoscope className="w-5 h-5" />}
-            path="/doctor-requests"
-            variant="accent"
-          />
-        </div>
-      </div>
 
       {/* Loading or Error States */}
       {isLoading && <DashboardSkeleton />}
@@ -465,47 +421,7 @@ export const DashboardPage: React.FC = () => {
                 </CardContent>
               </Card>
 
-              {/* Pending Doctor Requests Section */}
-              <Card variant="default">
-                <CardHeader className="pb-3 border-b border-slate-100 flex items-center justify-between">
-                  <div>
-                    <CardTitle>Pending Tele-Doctor Escalation Requests</CardTitle>
-                    <CardDescription>
-                      Cases referred to remote specialist hub waiting for review or prescription signoff.
-                    </CardDescription>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs text-indigo-700 hover:text-indigo-900 font-semibold"
-                    onClick={() => navigate('/doctor-requests')}
-                  >
-                    View All Queue →
-                  </Button>
-                </CardHeader>
-
-                <CardContent className="space-y-3 pt-4">
-                  {doctorRequests.map((req) => (
-                    <DoctorRequestCard
-                      key={req.id}
-                      request={req}
-                      onViewCase={(r) => {
-                        addToast({
-                          title: `Tele-Request ${r.id}`,
-                          message: `Opening doctor escalation details for ${r.patientName}.`,
-                          type: 'info',
-                        });
-                        navigate('/doctor-requests');
-                      }}
-                    />
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right Column (1/3): Activity Timeline & System Status */}
-            <div className="space-y-6">
-              {/* Application Activity Timeline */}
+              {/* Application Activity Timeline under Clinical Workflows */}
               <Card variant="default">
                 <CardHeader className="pb-3 border-b border-slate-100">
                   <div className="flex items-center justify-between">
@@ -521,14 +437,17 @@ export const DashboardPage: React.FC = () => {
                   <ActivityTimeline events={MOCK_ACTIVITY_TIMELINE} />
                 </CardContent>
               </Card>
+            </div>
 
-              {/* Sub-Health Centre Telemetry Widget */}
+            {/* Right Column (1/3): System Settings & Telemetry */}
+            <div className="space-y-6">
+              {/* Sub-Health Centre Telemetry Widget (System Settings) */}
               <Card variant="flat" className="p-5 space-y-3 bg-gradient-to-br from-slate-900 to-slate-800 text-white border-slate-800">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Wifi className="w-4 h-4 text-emerald-400" />
                     <span className="font-bold text-xs uppercase tracking-wider text-slate-200">
-                      Satellite Link Status
+                      System Settings & Satellite Telemetry
                     </span>
                   </div>
                   <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">
@@ -563,7 +482,7 @@ export const DashboardPage: React.FC = () => {
                     })
                   }
                 >
-                  Verify Offline Cache
+                  Verify Offline Cache & Settings
                 </Button>
               </Card>
             </div>
@@ -575,6 +494,12 @@ export const DashboardPage: React.FC = () => {
       <EmergencyViewModal
         isOpen={isEmergencyModalOpen}
         onClose={() => setIsEmergencyModalOpen(false)}
+      />
+
+      {/* Regional Language Voice Assistant Modal */}
+      <RegionalVoiceAssistantModal
+        isOpen={isVoiceAssistantOpen}
+        onClose={() => setIsVoiceAssistantOpen(false)}
       />
     </div>
   );

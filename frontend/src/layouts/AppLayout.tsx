@@ -38,8 +38,8 @@ export const AppLayout: React.FC = () => {
         {/* Top Navbar */}
         <Topbar onOpenMobileNav={() => setIsMobileNavOpen(true)} />
 
-        {/* Global Healthcare Safety Notice Top Banner (Clinical role only) */}
-        {role !== 'PATIENT' && (
+        {/* Global Healthcare Safety Notice Top Banner */}
+        {role !== 'PATIENT' && role !== 'HEALTH_WORKER' && (
           <div className="px-4 sm:px-6 pt-4 max-w-7xl w-full mx-auto">
             <HealthcareSafetyNotice compact />
           </div>

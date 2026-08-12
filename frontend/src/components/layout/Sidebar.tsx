@@ -67,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       title: t('nav.doctor_requests', 'Doctor Requests'),
       path: '/doctor-requests',
       icon: <Stethoscope className="w-5 h-5" />,
-      allowedRoles: ['HEALTH_WORKER', 'DOCTOR', 'ADMIN'],
+      allowedRoles: ['HEALTH_WORKER', 'ADMIN'],
     },
     {
       title: t('nav.documents', 'Medical Records'),

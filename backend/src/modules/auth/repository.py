@@ -13,6 +13,11 @@ class AuthRepository:
     def get_by_email(self, email: str) -> Optional[User]:
         return self.db.query(User).filter(User.email == email).first()
 
+    def get_by_phone(self, phone: str) -> Optional[User]:
+        if not phone:
+            return None
+        return self.db.query(User).filter(User.phone == phone).first()
+
     def create(self, user_data: dict) -> User:
         user = User(**user_data)
         self.db.add(user)

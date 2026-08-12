@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { Button } from '../components/ui/Button';
@@ -39,15 +39,18 @@ export const LoginPage: React.FC = () => {
 
     setIsLoading(true);
     try {
-      await login({ email, password });
+      const user = await login({ email, password });
       addToast({
         title: 'Authentication Successful',
-        message: 'Welcome back to Arogya Health AI virtual clinic portal.',
+        message: `Welcome back ${user.name} to ${APP_NAME}.`,
         type: 'success',
       });
-      navigate('/dashboard');
-    } catch (err) {
-      setError('Invalid credentials or unauthorized healthcare worker email.');
+      if (user.role === 'DOCTOR') navigate('/doctor/dashboard');
+      else if (user.role === 'PATIENT') navigate('/patient-portal');
+      else if (user.role === 'ADMIN') navigate('/admin/dashboard');
+      else navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Invalid credentials or unauthorized healthcare worker email.');
     } finally {
       setIsLoading(false);
     }
@@ -248,6 +251,14 @@ export const LoginPage: React.FC = () => {
             </span>
           </button>
         </div>
+      </div>
+
+      {/* Navigation Link to Signup */}
+      <div className="text-center pt-2 border-t border-slate-100 text-xs text-slate-600">
+        Don't have an account yet?{' '}
+        <Link to="/register" className="text-teal-700 font-bold hover:underline">
+          Create New Account / Register
+        </Link>
       </div>
     </div>
   );

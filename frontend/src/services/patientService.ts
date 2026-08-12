@@ -1,3 +1,4 @@
+import axios from 'axios';
 import {
   Patient,
   VitalSigns,
@@ -10,19 +11,74 @@ import {
 } from '../types';
 import { MOCK_PATIENTS } from '../mock';
 
+const LOCAL_STORAGE_KEY = 'arogya_registered_patients';
+
+const getStoredPatients = (): Patient[] => {
+  try {
+    const data = localStorage.getItem(LOCAL_STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveStoredPatients = (patients: Patient[]) => {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(patients));
+  } catch (e) {
+    console.warn('Failed to save patients to localStorage:', e);
+  }
+};
+
 export const patientService = {
   async getPatients(): Promise<Patient[]> {
-    await new Promise((resolve) => setTimeout(resolve, 250));
-    return [...MOCK_PATIENTS];
+    const stored = getStoredPatients();
+
+    try {
+      const response = await axios.get('/api/v1/patients');
+      if (response.data && response.data.data && Array.isArray(response.data.data)) {
+        const apiPatients: Patient[] = response.data.data.map((item: any) => ({
+          id: item.patient_code || item.id,
+          name: item.name,
+          age: item.age || 40,
+          gender: item.gender || 'Other',
+          phone: item.phone || '+91 98765 00000',
+          village: item.address || 'Sub-Health Centre Village Rampur',
+          district: 'Surguja',
+          state: 'Chhattisgarh',
+          abhaId: `91-2384-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`,
+          registeredAt: item.created_at ? item.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+          bloodGroup: 'B+',
+          emergencyContact: '+91 98765 43210',
+          preferredLanguage: item.preferred_language === 'hi' ? 'Hindi' : 'English',
+          medicalHistory: [],
+          medications: [],
+          allergies: [],
+          documents: [],
+          images: [],
+          timeline: [],
+          alerts: [],
+        }));
+
+        // Merge LocalStorage registered patients + API patients + MOCK_PATIENTS (stored takes precedence)
+        const combined = [...stored, ...apiPatients, ...MOCK_PATIENTS];
+        const unique = Array.from(new Map(combined.map((p) => [p.id, p])).values());
+        return unique;
+      }
+    } catch (err) {
+      console.warn('Backend patient API unavailable, serving stored + mock patients.', err);
+    }
+
+    const combined = [...stored, ...MOCK_PATIENTS];
+    return Array.from(new Map(combined.map((p) => [p.id, p])).values());
   },
 
   async getPatientById(id: string): Promise<Patient | null> {
-    await new Promise((resolve) => setTimeout(resolve, 150));
-    return MOCK_PATIENTS.find((p) => p.id === id) || null;
+    const all = await patientService.getPatients();
+    return all.find((p) => p.id === id || p.abhaId === id) || null;
   },
 
   async createPatient(patientData: Omit<Patient, 'id' | 'registeredAt'>): Promise<Patient> {
-    await new Promise((resolve) => setTimeout(resolve, 350));
     const newId = `PAT-${Math.floor(1000 + Math.random() * 9000)}`;
     const nowIso = new Date().toISOString().split('T')[0];
 
@@ -53,7 +109,28 @@ export const patientService = {
       alerts: patientData.alerts || [],
     };
 
+    // Save to LocalStorage permanently so browser refresh never clears added patients
+    const stored = getStoredPatients();
+    saveStoredPatients([newPatient, ...stored]);
+
+    // Also update in-memory MOCK_PATIENTS array
     MOCK_PATIENTS.unshift(newPatient);
+
+    // Try persisting to Backend DB via REST API
+    try {
+      await axios.post('/api/v1/patients', {
+        name: patientData.name,
+        age: patientData.age,
+        gender: patientData.gender,
+        phone: patientData.phone,
+        address: `${patientData.village || 'Rampur'}, ${patientData.district || 'Surguja'}`,
+        preferred_language: patientData.preferredLanguage === 'Hindi' ? 'hi' : 'en',
+        patient_code: newId,
+      });
+    } catch (err) {
+      console.warn('Backend API offline, patient saved to persistent local database cache.', err);
+    }
+
     return newPatient;
   },
 

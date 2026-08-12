@@ -8,14 +8,14 @@ try:
 except ImportError:
     jwt = None
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256", "bcrypt"], deprecated="auto")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify plain password against hashed password."""
     return pwd_context.verify(plain_password, hashed_password)
 
 def get_password_hash(password: str) -> str:
-    """Generate bcrypt hash for password."""
+    """Generate secure hash for password."""
     return pwd_context.hash(password)
 
 def create_access_token(subject: Any, role: str, expires_delta: Optional[timedelta] = None) -> str:

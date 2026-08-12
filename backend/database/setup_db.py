@@ -18,9 +18,10 @@ def setup_database():
     print("AI-Powered Rural Virtual Clinic Database Setup")
     print("=====================================================")
 
-    # 1. Connect to default 'postgres' database to check/create 'virtual_clinic' DB
+    from urllib.parse import quote_plus
+    pwd_quoted = quote_plus(settings.POSTGRES_PASSWORD)
     postgres_default_url = (
-        f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}"
+        f"postgresql://{settings.POSTGRES_USER}:{pwd_quoted}"
         f"@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/postgres"
     )
     

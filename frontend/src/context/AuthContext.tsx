@@ -1,15 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Role } from '../types';
 import { MOCK_USERS } from '../mock';
-import { authService, LoginCredentials } from '../services/authService';
+import { authService, LoginCredentials, SignupPayload } from '../services/authService';
 
 interface AuthContextType {
   user: User | null;
   role: Role;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: LoginCredentials) => Promise<void>;
-  demoLogin: (role: Role) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<User>;
+  register: (payload: SignupPayload) => Promise<User>;
+  demoLogin: (role: Role) => Promise<User>;
   switchRole: (role: Role) => void;
   logout: () => void;
 }
@@ -18,7 +19,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
-    // Check localStorage for persisted demo session
     const saved = localStorage.getItem('arogya_demo_user');
     if (saved) {
       try {
@@ -40,21 +40,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user]);
 
-  const login = async (credentials: LoginCredentials) => {
+  const login = async (credentials: LoginCredentials): Promise<User> => {
     setIsLoading(true);
     try {
       const res = await authService.login(credentials);
       setUser(res.user);
+      return res.user;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const demoLogin = async (targetRole: Role) => {
+  const register = async (payload: SignupPayload): Promise<User> => {
+    setIsLoading(true);
+    try {
+      const res = await authService.register(payload);
+      setUser(res.user);
+      return res.user;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const demoLogin = async (targetRole: Role): Promise<User> => {
     setIsLoading(true);
     try {
       const mockUser = MOCK_USERS[targetRole] || MOCK_USERS.HEALTH_WORKER;
       setUser(mockUser);
+      return mockUser;
     } finally {
       setIsLoading(false);
     }
@@ -69,6 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setUser(null);
     localStorage.removeItem('arogya_demo_user');
+    authService.logout();
   };
 
   return (
@@ -79,6 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!user,
         isLoading,
         login,
+        register,
         demoLogin,
         switchRole,
         logout,

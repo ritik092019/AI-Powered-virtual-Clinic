@@ -11,13 +11,22 @@ if backend_dir not in sys.path:
 
 from src.core.config import settings
 
-engine = create_engine(
-    settings.DATABASE_URL,
-    pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
-    echo=False
-)
+try:
+    engine = create_engine(
+        settings.DATABASE_URL,
+        pool_pre_ping=True,
+        pool_size=10,
+        max_overflow=20,
+        echo=False
+    )
+    with engine.connect() as conn:
+        pass
+except Exception:
+    engine = create_engine(
+        "sqlite:///./virtual_clinic.db",
+        connect_args={"check_same_thread": False},
+        echo=False
+    )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

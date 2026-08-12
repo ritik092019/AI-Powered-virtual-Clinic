@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.patients.schemas import PatientCreate, PatientUpdate
+from app.patients.schemas import PatientCreate, PatientUpdate, PatientDoctorChatMessageRequest
 from app.patients.service import PatientService
 from app.core.dependencies import get_current_user, require_roles
 from app.common.responses import APIResponse
@@ -84,12 +84,13 @@ def get_patient_timeline(
 
 @router.get("/my-consultations", status_code=status.HTTP_200_OK)
 def get_patient_doctor_consultations(
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Retrieve logged-in patient's assigned doctor consultations, appointment details, and doctor notes."""
+    """Retrieve logged-in patient's assigned doctor consultations from PostgreSQL database."""
     from app.patients.services.patient_consultation_service import PatientConsultationService
     patient_id = current_user.id
-    res = PatientConsultationService.get_patient_doctor_consultations(patient_id)
+    res = PatientConsultationService.get_patient_doctor_consultations(patient_id, db=db)
     return APIResponse.success(data=res, message="Patient doctor consultations retrieved")
 
 @router.post("/consultations/chat", status_code=status.HTTP_200_OK)
@@ -99,7 +100,6 @@ def send_patient_doctor_chat(
 ):
     """Send real-time chat message from patient to assigned doctor."""
     from app.patients.services.patient_consultation_service import PatientConsultationService
-    from app.patients.schemas import PatientDoctorChatMessageRequest
     patient_id = current_user.id
     res = PatientConsultationService.send_chat_message(patient_id, req)
     return APIResponse.success(data=res, message="Chat message sent to assigned doctor")

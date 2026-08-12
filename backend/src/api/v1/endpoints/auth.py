@@ -5,16 +5,32 @@ from src.schemas.user import UserCreate, UserLogin, UserResponse, TokenSchema, R
 from src.modules.auth.service import AuthService
 from src.core.dependencies import get_current_user
 from src.core.response import APIResponse
-from database.models import User
+from database.models import User, UserRole
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
-    """Register a new Health Worker, Doctor, or Administrator account."""
+    """Public self-registration for Patient, Health Worker, and Doctor accounts (Admin forbidden)."""
     service = AuthService(db)
-    user = service.register(user_in)
+    user = service.register(user_in, is_admin_creator=False)
     return APIResponse.created(data=user, message="User registered successfully")
+
+@router.post("/register-admin", status_code=status.HTTP_201_CREATED)
+def register_admin(
+    user_in: UserCreate, 
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Register a new Administrator account (restricted to existing Administrators)."""
+    if current_user.role != UserRole.ADMIN:
+        from src.core.exceptions import ForbiddenException
+        raise ForbiddenException("Only active Administrators can create new Administrator accounts")
+    
+    service = AuthService(db)
+    user_in.role = UserRole.ADMIN
+    user = service.register(user_in, is_admin_creator=True)
+    return APIResponse.created(data=user, message="Admin account created successfully")
 
 @router.post("/login")
 def login(credentials: UserLogin, db: Session = Depends(get_db)):

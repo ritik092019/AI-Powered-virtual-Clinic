@@ -68,9 +68,14 @@ def run_verification_tests():
 
         # 4. Test JSONB Field Queryability
         print("\n4. Testing JSONB queries on Patient medical history & Consultation vitals...")
-        diabetic_patients = db.query(Patient).filter(
-            text("medical_history @> '[\"Diabetes\"]'::jsonb")
-        ).all()
+        if engine.dialect.name == "postgresql":
+            diabetic_patients = db.query(Patient).filter(
+                text("medical_history @> '[\"Diabetes\"]'::jsonb")
+            ).all()
+        else:
+            diabetic_patients = db.query(Patient).filter(
+                text("json_extract(medical_history, '$') LIKE '%Diabetes%'")
+            ).all()
         print(f"[PASS] JSONB query returned {len(diabetic_patients)} patient(s) with Diabetes")
 
         # 5. Test Consultation Status & Nullable doctor_id

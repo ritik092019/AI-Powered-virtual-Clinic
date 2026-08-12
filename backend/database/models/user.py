@@ -1,6 +1,6 @@
 import uuid
-from sqlalchemy import Column, String, Enum as SQLEnum, DateTime, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, Boolean, Enum as SQLEnum, DateTime, func
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from database.base import Base
 from database.models.enums import UserRole
@@ -15,6 +15,8 @@ class User(Base):
     role = Column(SQLEnum(UserRole, name="user_role"), nullable=False, index=True)
     phone = Column(String(50), nullable=True)
     language = Column(String(10), nullable=True)
+    is_active = Column(Boolean, nullable=False, default=True, index=True)
+    profile_metadata = Column(JSONB, server_default='{}', nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 

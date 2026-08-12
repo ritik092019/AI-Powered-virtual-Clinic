@@ -144,21 +144,7 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setSimulateError(!simulateError);
-              addToast({
-                title: simulateError ? 'Network Restored' : 'Simulating Network Error',
-                message: simulateError ? 'Restored mock data feed.' : 'Testing dashboard error state with retry.',
-                type: simulateError ? 'success' : 'warning',
-              });
-            }}
-            className={simulateError ? 'border-rose-300 text-rose-700 bg-rose-50' : 'text-slate-600'}
-          >
-            {simulateError ? 'Restore Mock Data' : 'Test Error State'}
-          </Button>
+
 
           <Button
             variant="outline"

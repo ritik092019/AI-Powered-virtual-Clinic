@@ -18,17 +18,40 @@ class Settings(BaseSettings):
         "*"
     ]
 
-    # PostgreSQL Database Settings
+    @property
+    def postgres_password(self) -> str:
+        return os.getenv("POSTGRES_PASSWORD", "postgres")
+
+    @property
+    def postgres_user(self) -> str:
+        return os.getenv("POSTGRES_USER", "postgres")
+
+    @property
+    def postgres_host(self) -> str:
+        return os.getenv("POSTGRES_HOST", "127.0.0.1")
+
+    @property
+    def postgres_port(self) -> str:
+        return os.getenv("POSTGRES_PORT", "5432")
+
+    @property
+    def postgres_db(self) -> str:
+        return os.getenv("POSTGRES_DB", "virtual_clinic")
+
+    @property
+    def database_url(self) -> str:
+        from urllib.parse import quote_plus
+        if os.getenv("DATABASE_URL"):
+            return os.getenv("DATABASE_URL")
+        pwd = quote_plus(self.postgres_password)
+        return f"postgresql://{self.postgres_user}:{pwd}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
     POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "postgres")
-    POSTGRES_HOST: str = os.getenv("POSTGRES_HOST", "localhost")
+    POSTGRES_HOST: str = os.getenv("POSTGRES_HOST", "127.0.0.1")
     POSTGRES_PORT: str = os.getenv("POSTGRES_PORT", "5432")
     POSTGRES_DB: str = os.getenv("POSTGRES_DB", "virtual_clinic")
-    
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL", 
-        f"postgresql://{os.getenv('POSTGRES_USER', 'postgres')}:{os.getenv('POSTGRES_PASSWORD', 'postgres')}@{os.getenv('POSTGRES_HOST', 'localhost')}:{os.getenv('POSTGRES_PORT', '5432')}/{os.getenv('POSTGRES_DB', 'virtual_clinic')}"
-    )
+    DATABASE_URL: str = ""
 
     # Redis Settings
     REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
@@ -61,7 +84,7 @@ class Settings(BaseSettings):
         return self.CORS_ORIGINS
 
     class Config:
-        env_file = ".env"
+        env_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".env")
         extra = "ignore"
 
 settings = Settings()

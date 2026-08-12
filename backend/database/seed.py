@@ -451,7 +451,7 @@ def seed_database():
             message="Health Worker Sunita requested urgent review for patient Chhotu Kumar (PAT-000003).",
             type=NotificationType.DOCTOR_REQUEST,
             is_read=False,
-            related_id=r1.id
+            related_entity_id=r1.id
         )
 
         n2 = Notification(
@@ -461,27 +461,27 @@ def seed_database():
             message="Dr. Ananya Sharma accepted consultation for patient Lakshmi Narayana (PAT-000004).",
             type=NotificationType.CONSULTATION_UPDATE,
             is_read=True,
-            related_id=c4.id
+            related_entity_id=c4.id
         )
 
         n3 = Notification(
             id=uuid.uuid4(),
             user_id=hw1.id,
             title="AI Assessment Complete",
-            message="AI Triage Assessment generated for Priya Das (PAT-000002). Risk: MODERATE.",
+            message="AI Triage generated LOW risk assessment for Aarav Verma (PAT-000001).",
             type=NotificationType.AI_ANALYSIS,
-            is_read=False,
-            related_id=c2.id
+            is_read=True,
+            related_entity_id=c2.id
         )
 
         n4 = Notification(
             id=uuid.uuid4(),
-            user_id=dr1.id,
-            title="CRITICAL ALERT: Emergency Referral",
-            message="Emergency referral issued for Lakshmi Narayana to District Hospital Cardiac ICU.",
+            user_id=hw1.id,
+            title="Immediate Referral Alert",
+            message="Urgent specialist referral created for Ramesh Patel (PAT-000002).",
             type=NotificationType.WARNING,
             is_read=False,
-            related_id=r4.id
+            related_entity_id=r4.id
         )
 
         db.add_all([n1, n2, n3, n4])

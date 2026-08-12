@@ -125,3 +125,22 @@ class DoctorConsultationResponse(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class EndCallRequest(BaseModel):
+    consultation_id: UUID
+    call_duration_seconds: int = Field(..., ge=0)
+    doctor_notes: Optional[str] = Field(None, description="Clinical notes recorded after call")
+    follow_up_date: Optional[str] = Field(None, description="Follow-up date e.g. 18 Aug 2026")
+    status: str = Field("Completed", description="Completed or Follow-up Required")
+
+class EndCallResponse(BaseModel):
+    consultation_id: UUID
+    status: str
+    call_duration_seconds: int
+    call_duration_formatted: str
+    doctor_notes: Optional[str] = None
+    follow_up_date: Optional[str] = None
+    ended_at: datetime = Field(default_factory=datetime.utcnow)
+
+    model_config = ConfigDict(from_attributes=True)
+

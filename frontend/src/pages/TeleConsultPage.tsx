@@ -5,7 +5,8 @@ import { Consultation } from '../types';
 import { TeleConsultChat } from '../components/doctor/TeleConsultChat';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
-import { ArrowLeft, Stethoscope, User, RefreshCcw } from 'lucide-react';
+import { ArrowLeft, Stethoscope, User, RefreshCcw, Video } from 'lucide-react';
+import { RealtimeDoctorPatientCallModal } from '../components/common/RealtimeDoctorPatientCallModal';
 
 export const TeleConsultPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +18,7 @@ export const TeleConsultPage: React.FC = () => {
     user?.role === 'DOCTOR' ? 'DOCTOR' : 'HEALTH_WORKER'
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -75,25 +77,37 @@ export const TeleConsultPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Role Toggle Switch for Testing/Demo */}
-        <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl self-start sm:self-center">
-          <button
-            onClick={() => setRoleView('HEALTH_WORKER')}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-              roleView === 'HEALTH_WORKER' ? 'bg-teal-700 text-white shadow-2xs' : 'text-slate-600'
-            }`}
+        {/* Role Toggle Switch & Call Button */}
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setIsVideoCallOpen(true)}
+            leftIcon={<Video className="w-4 h-4 animate-pulse" />}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md border border-emerald-500"
           >
-            Health Worker View
-          </button>
+            Start WebRTC Audio/Video Call
+          </Button>
 
-          <button
-            onClick={() => setRoleView('DOCTOR')}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-              roleView === 'DOCTOR' ? 'bg-indigo-900 text-white shadow-2xs' : 'text-slate-600'
-            }`}
-          >
-            Doctor View
-          </button>
+          <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
+            <button
+              onClick={() => setRoleView('HEALTH_WORKER')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                roleView === 'HEALTH_WORKER' ? 'bg-teal-700 text-white shadow-2xs' : 'text-slate-600'
+              }`}
+            >
+              Health Worker View
+            </button>
+
+            <button
+              onClick={() => setRoleView('DOCTOR')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                roleView === 'DOCTOR' ? 'bg-indigo-900 text-white shadow-2xs' : 'text-slate-600'
+              }`}
+            >
+              Doctor View
+            </button>
+          </div>
         </div>
       </div>
 
@@ -107,6 +121,16 @@ export const TeleConsultPage: React.FC = () => {
           }
         />
       </div>
+
+      {/* Real-time WebRTC Audio/Video Call Modal */}
+      <RealtimeDoctorPatientCallModal
+        isOpen={isVideoCallOpen}
+        onClose={() => setIsVideoCallOpen(false)}
+        consultationId={consultation.id}
+        patientName={consultation.patientName}
+        doctorName={consultation.doctorName || 'Dr. Rajesh Verma'}
+        userRole={roleView === 'DOCTOR' ? 'DOCTOR' : 'PATIENT'}
+      />
     </div>
   );
 };

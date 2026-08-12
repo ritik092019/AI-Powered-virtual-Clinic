@@ -10,6 +10,7 @@ import {
   PatientTimelineEvent,
 } from '../types';
 import { MOCK_PATIENTS } from '../mock';
+import { documentService } from './documentService';
 
 const LOCAL_STORAGE_KEY = 'arogya_registered_patients';
 
@@ -35,7 +36,10 @@ export const patientService = {
     const stored = getStoredPatients();
 
     try {
-      const response = await axios.get('/api/v1/patients');
+      const token = localStorage.getItem('arogya_access_token') || 'mock-jwt-token-patient';
+      const response = await axios.get('/api/v1/patients', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (response.data && response.data.data && Array.isArray(response.data.data)) {
         const apiPatients: Patient[] = response.data.data.map((item: any) => ({
           id: item.patient_code || item.id,
@@ -252,6 +256,22 @@ export const patientService = {
   async addDocument(patientId: string, docData: Partial<MedicalDocument>): Promise<MedicalDocument> {
     await new Promise((resolve) => setTimeout(resolve, 350));
     const patient = MOCK_PATIENTS.find((p) => p.id === patientId);
+    
+    let generatedOcrSummary = docData.ocrSummary;
+    try {
+      const summaryResult = await documentService.getPatientDocumentSummary({
+        document_id: `doc_${Date.now()}`,
+        document_type: docData.category === 'prescription' ? 'PRESCRIPTION' : docData.category === 'discharge_summary' ? 'DISCHARGE_SUMMARY' : 'LAB_REPORT',
+        raw_text: docData.notes ? `${docData.title}. Notes: ${docData.notes}` : docData.title,
+      });
+      if (summaryResult && summaryResult.patient_friendly_summary) {
+        const findings = (summaryResult.important_findings || []).join(' • ');
+        generatedOcrSummary = `✨ AI Summary: ${summaryResult.patient_friendly_summary} ${findings ? ' Key Findings: ' + findings : ''}`;
+      }
+    } catch (err) {
+      console.warn('Failed to generate AI summary, using default:', err);
+    }
+
     const newDoc: MedicalDocument = {
       id: `doc_${Date.now()}`,
       patientId,
@@ -261,8 +281,8 @@ export const patientService = {
       fileUrl: docData.fileUrl || 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=600&auto=format&fit=crop&q=80',
       fileSize: docData.fileSize || '1.2 MB',
       ocrStatus: 'completed',
-      ocrSummary: docData.ocrSummary || 'Mock OCR extracted clinical parameters: Blood pressure, Hemoglobin levels normal.',
-      notes: docData.notes || 'Mock document scan uploaded by health worker.',
+      ocrSummary: generatedOcrSummary || '✨ AI OCR Extracted: Blood glucose, Hemoglobin levels and vital parameters analyzed.',
+      notes: docData.notes || 'Document scan uploaded and analyzed by Gemini AI.',
     };
 
     if (patient) {

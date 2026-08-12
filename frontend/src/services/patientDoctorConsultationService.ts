@@ -37,7 +37,10 @@ export interface PatientDoctorConsultation {
 export const patientDoctorConsultationService = {
   getPatientConsultations: async (): Promise<PatientDoctorConsultation[]> => {
     try {
-      const response = await axios.get('/api/v1/patients/my-consultations');
+      const token = localStorage.getItem('arogya_access_token');
+      const response = await axios.get('/api/v1/patients/my-consultations', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       return response.data.data;
     } catch (err) {
       console.warn('Backend endpoint unavailable, using mock patient doctor consultations.', err);

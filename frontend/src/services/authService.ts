@@ -135,14 +135,18 @@ export const authService = {
       if (credentials.password && foundLocal.password !== credentials.password) {
         throw new Error('Invalid email or password.');
       }
-      return { user: foundLocal.user, token: `local-jwt-${foundLocal.user.id}` };
+      const tok = `local-jwt-${foundLocal.user.id}`;
+      localStorage.setItem('arogya_access_token', tok);
+      return { user: foundLocal.user, token: tok };
     }
 
     // 3. Dev Demo Role Override
     if (credentials.role && MOCK_USERS[credentials.role]) {
+      const tok = `mock-jwt-token-${credentials.role.toLowerCase()}`;
+      localStorage.setItem('arogya_access_token', tok);
       return {
         user: MOCK_USERS[credentials.role],
-        token: `mock-jwt-token-${credentials.role.toLowerCase()}`,
+        token: tok,
       };
     }
 
@@ -156,9 +160,12 @@ export const authService = {
       ? 'PATIENT'
       : 'HEALTH_WORKER';
 
+    const tok = `mock-jwt-token-${matchedRole.toLowerCase()}`;
+    localStorage.setItem('arogya_access_token', tok);
+
     return {
       user: MOCK_USERS[matchedRole],
-      token: `mock-jwt-token-${matchedRole.toLowerCase()}`,
+      token: tok,
     };
   },
 

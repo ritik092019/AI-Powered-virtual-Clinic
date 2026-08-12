@@ -61,5 +61,5 @@ def process_emergency_assessment(
     from app.ai.services.emergency_ai_service import EmergencyAIService
     service = EmergencyAIService(db)
     result = service.process_emergency_assessment(request)
-    return APIResponse.success(data=result.model_dump(), message="Emergency AI assessment completed")
+    return APIResponse.success(data=result.model_dump(mode='json'), message="Emergency AI assessment completed")
 

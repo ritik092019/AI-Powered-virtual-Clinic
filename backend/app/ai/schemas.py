@@ -56,6 +56,9 @@ class EmergencyAssessmentRequest(BaseModel):
 class EmergencyAssessmentResponse(BaseModel):
     id: UUID
     urgency_level: str = Field(..., description="CRITICAL_EMERGENCY, HIGH_PRIORITY, or MODERATE_URGENT")
+    problem_explanation: str = Field(default="Acute clinical emergency identified requiring immediate structured intervention.", description="Detailed clinical explanation of identified health problem")
+    solutions_to_adapt: List[str] = Field(default_factory=list, description="Recommended clinical procedures and solutions to adapt immediately")
+    things_to_avoid: List[str] = Field(default_factory=list, description="Critical actions and harmful practices to strictly avoid")
     immediate_first_aid: List[str] = Field(default_factory=list, description="Step-by-step first-aid actions for health worker")
     critical_warnings: List[str] = Field(default_factory=list, description="Red flag clinical warnings")
     doctor_escalation_required: bool = Field(..., description="Whether immediate doctor escalation is required")

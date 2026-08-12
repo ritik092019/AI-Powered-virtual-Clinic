@@ -25,7 +25,10 @@ export interface VoiceAssistantResponseData {
 export const voiceAssistantService = {
   processVoiceAssistant: async (data: VoiceAssistantRequestData): Promise<VoiceAssistantResponseData> => {
     try {
-      const response = await axios.post('/api/v1/speech/voice-assistant', data);
+      const token = localStorage.getItem('arogya_access_token');
+      const response = await axios.post('/api/v1/speech/voice-assistant', data, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       return response.data.data;
     } catch (err) {
       console.warn('Backend API unavailable, using local mock processing for voice assistant.', err);

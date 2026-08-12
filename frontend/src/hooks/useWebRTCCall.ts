@@ -89,28 +89,32 @@ export function useWebRTCCall({
         }
       };
 
-      // 3. Setup WebSocket Signaling
+      // 3. Setup WebSocket Signaling via API v1 Gateway
       const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${wsProtocol}//${window.location.host}/ws/consultations/${roomId}`;
+      const token = localStorage.getItem('arogya_access_token') || '';
+      const userId = userName.replace(/\s+/g, '_').toLowerCase();
+      const wsUrl = `${wsProtocol}//${window.location.host}/api/v1/ws/${userId}?room_id=${roomId}&token=${token}`;
 
       try {
         const ws = new WebSocket(wsUrl);
         websocketRef.current = ws;
 
         ws.onopen = () => {
-          console.log(`Connected to WebRTC signaling room '${roomId}'`);
+          console.log(`[WebRTC Signaling] Connected for user '${userName}' in room '${roomId}'`);
           ws.send(
             JSON.stringify({
-              type: 'join',
+              event: 'INITIATE_CALL',
+              type: 'INITIATE_CALL',
               senderRole: userRole,
               senderName: userName,
+              consultation_id: roomId,
             })
           );
 
           // Auto-transition to In Consultation
           setTimeout(() => {
             setCallState('In Consultation');
-          }, 1500);
+          }, 1200);
         };
 
         ws.onmessage = (event) => {

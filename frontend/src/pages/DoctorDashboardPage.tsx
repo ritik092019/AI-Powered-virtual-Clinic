@@ -19,7 +19,10 @@ import {
   Bell,
   Filter,
   Check,
+  Video,
 } from 'lucide-react';
+import { IncomingCallModal, IncomingCallData } from '../components/common/IncomingCallModal';
+import { RealtimeDoctorPatientCallModal } from '../components/common/RealtimeDoctorPatientCallModal';
 
 export const DoctorDashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -33,6 +36,65 @@ export const DoctorDashboardPage: React.FC = () => {
   // Filters
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  // Incoming Call State
+  const [incomingCall, setIncomingCall] = useState<IncomingCallData | null>(null);
+  const [isIncomingCallOpen, setIsIncomingCallOpen] = useState<boolean>(false);
+  const [activeCallSession, setActiveCallSession] = useState<{ consultationId: string; patientName: string } | null>(null);
+
+  // Persistent WebSocket listener for Incoming Calls
+  useEffect(() => {
+    if (!user) return;
+
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const token = localStorage.getItem('arogya_access_token') || '';
+    const doctorUserId = user.id || 'a9110000-0000-4000-a000-000000000001';
+    const wsUrl = `${wsProtocol}//${window.location.host}/api/v1/ws/${doctorUserId}?token=${token}`;
+
+    let socket: WebSocket | null = null;
+    try {
+      socket = new WebSocket(wsUrl);
+
+      socket.onopen = () => {
+        console.log(`[Doctor Signaling WS] Connected persistent listener for Doctor '${user.name}'`);
+      };
+
+      socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.event === 'INCOMING_CALL' || data.type === 'INCOMING_CALL') {
+            console.log('[Doctor Signaling WS] Incoming Call Received:', data);
+            setIncomingCall({
+              callId: data.call_id || `call_${Date.now()}`,
+              consultationId: data.consultation_id || 'CONS-1082',
+              patientId: data.patient_id || 'PAT-1082',
+              patientName: data.patient_name || 'Ramesh Patel',
+              callType: data.call_type || 'video',
+              timestamp: data.timestamp || new Date().toISOString(),
+            });
+            setIsIncomingCallOpen(true);
+            addToast({
+              title: '📞 Incoming Consultation Call',
+              message: `Patient ${data.patient_name || 'Ramesh Patel'} is requesting a live tele-consultation.`,
+              type: 'warning',
+            });
+          }
+        } catch (e) {
+          console.error('[Doctor Signaling WS] Error parsing message:', e);
+        }
+      };
+
+      socket.onerror = (err) => {
+        console.warn('[Doctor Signaling WS] Persistent socket warning:', err);
+      };
+    } catch (e) {
+      console.warn('[Doctor Signaling WS] Setup warning:', e);
+    }
+
+    return () => {
+      if (socket) socket.close();
+    };
+  }, [user, addToast]);
 
   useEffect(() => {
     async function loadDoctorData() {
@@ -96,8 +158,26 @@ export const DoctorDashboardPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="hidden sm:block">
-          <Stethoscope className="w-14 h-14 text-indigo-400 opacity-80" />
+        <div className="flex flex-col items-end gap-3">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => {
+              setIncomingCall({
+                callId: `call_sim_${Date.now()}`,
+                consultationId: 'CONS-1082',
+                patientId: 'PAT-1082',
+                patientName: 'Ramesh Patel',
+                callType: 'video',
+                timestamp: new Date().toISOString(),
+              });
+              setIsIncomingCallOpen(true);
+            }}
+            className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black shrink-0 text-xs shadow-lg animate-pulse border border-emerald-300"
+          >
+            📞 Simulate Incoming Patient Call
+          </Button>
+          <Stethoscope className="w-12 h-12 text-indigo-400 opacity-80 hidden sm:block" />
         </div>
       </div>
 
@@ -337,6 +417,47 @@ export const DoctorDashboardPage: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Incoming Call Modal Alert */}
+      <IncomingCallModal
+        isOpen={isIncomingCallOpen}
+        callData={incomingCall}
+        onAccept={() => {
+          setIsIncomingCallOpen(false);
+          if (incomingCall) {
+            setActiveCallSession({
+              consultationId: incomingCall.consultationId,
+              patientName: incomingCall.patientName,
+            });
+            addToast({
+              title: 'Call Connected',
+              message: `Joining live WebRTC consultation session with ${incomingCall.patientName}.`,
+              type: 'success',
+            });
+          }
+        }}
+        onReject={() => {
+          setIsIncomingCallOpen(false);
+          addToast({
+            title: 'Call Declined',
+            message: 'Incoming call declined.',
+            type: 'info',
+          });
+          setIncomingCall(null);
+        }}
+      />
+
+      {/* Active WebRTC Doctor Call Modal */}
+      {activeCallSession && (
+        <RealtimeDoctorPatientCallModal
+          isOpen={!!activeCallSession}
+          onClose={() => setActiveCallSession(null)}
+          consultationId={activeCallSession.consultationId}
+          patientName={activeCallSession.patientName}
+          doctorName={user?.name || 'Dr. Rajesh Verma'}
+          userRole="DOCTOR"
+        />
+      )}
     </div>
   );
 };

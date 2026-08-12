@@ -25,16 +25,10 @@ def seed_database():
     
     db = SessionLocal()
     try:
-        # Check if DB is already seeded
-        if db.query(User).first():
-            print("Database already contains seed data. Clearing existing demo records for a clean re-seed...")
-            db.query(Notification).delete()
-            db.query(DoctorRequest).delete()
-            db.query(AIAssessment).delete()
-            db.query(Consultation).delete()
-            db.query(Patient).delete()
-            db.query(User).delete()
-            db.commit()
+        # Check if DB is already seeded with default users
+        existing_emails = {u.email for u in db.query(User.email).all()}
+        if existing_emails:
+            print("Database already contains user records. Preserving existing accounts and seeding missing demo data...")
 
         print("Seeding Users...")
         hashed_pwd = "$2b$12$eImiTXuWVxfM37uY4JANjO5E/8vGZzJq2qS.Y1s/pLhWv0gYk/mGu"
@@ -84,8 +78,11 @@ def seed_database():
             phone="+91-9876543214",
             language="en"
         )
-        db.add_all([hw1, hw2, dr1, dr2, admin])
-        db.flush()
+        demo_users = [hw1, hw2, dr1, dr2, admin]
+        to_add = [u for u in demo_users if u.email not in existing_emails]
+        if to_add:
+            db.add_all(to_add)
+            db.flush()
 
         print("Seeding Patients...")
         p1 = Patient(

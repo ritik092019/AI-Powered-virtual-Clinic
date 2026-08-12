@@ -53,7 +53,7 @@ def init_db():
     except Exception as e:
         logger.warning(f"Database seed skipped or error: {e}")
 
-init_db()
+# init_db()  # Run setup_db.py or explicit seeding instead of auto-running on import
 
 def get_db():
     """Dependency for obtaining a database session in API routes."""

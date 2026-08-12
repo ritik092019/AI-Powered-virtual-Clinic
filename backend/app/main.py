@@ -104,7 +104,9 @@ app.include_router(documents_router, prefix=api_v1_prefix)
 app.include_router(images_router, prefix=api_v1_prefix)
 app.include_router(risk_router, prefix=api_v1_prefix)
 app.include_router(protocols_router, prefix=api_v1_prefix)
-app.include_router(admin_router, prefix=api_v1_prefix)
+from src.api.v1.endpoints.patient_summary import router as patient_summary_router
+
+app.include_router(patient_summary_router, prefix=api_v1_prefix)
 app.include_router(ws_router, prefix=api_v1_prefix)
 app.include_router(doctor_ws_router, prefix=api_v1_prefix)
 app.include_router(notif_ws_router, prefix=api_v1_prefix)

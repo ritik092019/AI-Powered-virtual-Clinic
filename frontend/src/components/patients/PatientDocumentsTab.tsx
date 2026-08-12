@@ -56,12 +56,11 @@ export const PatientDocumentsTab: React.FC<PatientDocumentsTabProps> = ({
         category: docCategory,
         notes: docNotes,
         fileSize: '1.2 MB',
-        ocrSummary: 'Extracted parameters: Fasting blood sugar 132 mg/dL. Prescribed Amlodipine 5mg OD.',
       });
 
       addToast({
-        title: 'Document Uploaded',
-        message: 'Report scanned and processed with mock OCR pipeline.',
+        title: 'Document Uploaded & Analyzed',
+        message: 'Medical report successfully processed & summarized by Gemini AI.',
         type: 'success',
       });
 

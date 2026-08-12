@@ -19,6 +19,9 @@ export interface EmergencyAssessmentPayload {
 export interface EmergencyAssessmentResult {
   id: string;
   urgency_level: EmergencyUrgencyLevel;
+  problem_explanation?: string;
+  solutions_to_adapt?: string[];
+  things_to_avoid?: string[];
   immediate_first_aid: string[];
   critical_warnings: string[];
   doctor_escalation_required: boolean;

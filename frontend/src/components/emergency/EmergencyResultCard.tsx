@@ -1,6 +1,6 @@
 import React from 'react';
 import { EmergencyAssessmentResult } from '../../types/emergency';
-import { AlertOctagon, ShieldAlert, CheckSquare, AlertTriangle, Stethoscope, Sparkles, Bell } from 'lucide-react';
+import { AlertOctagon, ShieldAlert, CheckSquare, AlertTriangle, Stethoscope, Sparkles, Bell, CheckCircle2, Ban } from 'lucide-react';
 import { Card } from '../ui/Card';
 
 interface ResultCardProps {
@@ -62,10 +62,60 @@ export const EmergencyResultCard: React.FC<ResultCardProps> = ({ result }) => {
         </div>
       </div>
 
+      {/* Detailed Problem Explanation Card */}
+      {result.problem_explanation && (
+        <Card variant="default" className="p-4 border-indigo-200 bg-indigo-50/40 space-y-1.5">
+          <h4 className="text-xs font-black text-indigo-950 uppercase tracking-wider flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-indigo-600 animate-pulse" /> 1. Identified Problem Explanation
+          </h4>
+          <p className="text-xs font-medium leading-relaxed text-slate-800 bg-white p-3 rounded-xl border border-indigo-100 shadow-2xs">
+            {result.problem_explanation}
+          </p>
+        </Card>
+      )}
+
+      {/* Solutions to Adapt Card */}
+      {result.solutions_to_adapt && result.solutions_to_adapt.length > 0 && (
+        <Card variant="default" className="p-4 border-teal-200 bg-teal-50/40">
+          <h4 className="text-xs font-black text-teal-950 uppercase tracking-wider flex items-center gap-1.5 mb-2.5">
+            <CheckCircle2 className="w-4 h-4 text-teal-600" /> 2. Recommended Clinical Solutions to Adapt
+          </h4>
+          <div className="space-y-1.5">
+            {result.solutions_to_adapt.map((sol, idx) => (
+              <div key={idx} className="p-2.5 bg-white rounded-lg border border-teal-200 text-xs font-semibold text-teal-950 flex items-start gap-2 shadow-2xs">
+                <span className="w-4 h-4 rounded-full bg-teal-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                  ✓
+                </span>
+                <span>{sol}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Critical Things to Avoid Card */}
+      {result.things_to_avoid && result.things_to_avoid.length > 0 && (
+        <Card variant="default" className="p-4 border-amber-200 bg-amber-50/40">
+          <h4 className="text-xs font-black text-amber-950 uppercase tracking-wider flex items-center gap-1.5 mb-2.5">
+            <Ban className="w-4 h-4 text-amber-600" /> 3. Critical Actions & Harmful Practices to Avoid
+          </h4>
+          <div className="space-y-1.5">
+            {result.things_to_avoid.map((avoid, idx) => (
+              <div key={idx} className="p-2.5 bg-white rounded-lg border border-amber-300 text-xs font-bold text-amber-950 flex items-start gap-2 shadow-2xs">
+                <span className="w-4 h-4 rounded-full bg-amber-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                  ✕
+                </span>
+                <span>{avoid}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
       {/* Immediate First-Aid Checklist */}
       <Card variant="default" className="p-4 border-emerald-200 bg-emerald-50/30">
         <h4 className="text-xs font-black text-emerald-950 uppercase tracking-wider flex items-center gap-1.5 mb-3">
-          <CheckSquare className="w-4 h-4 text-emerald-600" /> Immediate First-Aid & Basic Care Actions
+          <CheckSquare className="w-4 h-4 text-emerald-600" /> 4. Immediate First-Aid & Basic Care Actions
         </h4>
 
         <div className="space-y-2">
@@ -84,7 +134,7 @@ export const EmergencyResultCard: React.FC<ResultCardProps> = ({ result }) => {
       {result.critical_warnings.length > 0 && (
         <Card variant="default" className="p-4 border-rose-200 bg-rose-50/40">
           <h4 className="text-xs font-black text-rose-950 uppercase tracking-wider flex items-center gap-1.5 mb-2.5">
-            <AlertTriangle className="w-4 h-4 text-rose-600" /> Red-Flag Clinical Warnings
+            <AlertTriangle className="w-4 h-4 text-rose-600" /> 5. Red-Flag Clinical Warnings
           </h4>
 
           <div className="space-y-1.5">

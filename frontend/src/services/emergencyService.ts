@@ -8,7 +8,10 @@ export const emergencyService = {
    * Submit rapid emergency intake data and photo for Gemini AI analysis
    */
   assessEmergency: async (payload: EmergencyAssessmentPayload): Promise<EmergencyAssessmentResult> => {
-    const response = await axios.post(API_ENDPOINT, payload);
+    const token = localStorage.getItem('arogya_access_token');
+    const response = await axios.post(API_ENDPOINT, payload, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     return response.data.data;
   },
 };

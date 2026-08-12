@@ -10,13 +10,24 @@ interface QuickInputProps {
 const QUICK_SYMPTOM_TAGS = [
   'Chest Pain',
   'Severe Bleeding',
-  'Breathlessness',
+  'Breathlessness / Asthma',
   'Burn / Scald',
-  'Head Trauma',
+  'Head Trauma / Injury',
   'Unconscious / Syncope',
   'High Fever (103°F+)',
-  'Fracture / Dislocation',
-  'Allergic Reaction',
+  'Fracture / Bone Dislocation',
+  'Severe Allergic Reaction / Anaphylaxis',
+  'Snakebite / Animal Attack',
+  'Poisoning / Chemical Exposure',
+  'Abdominal Trauma / Severe Pain',
+  'Convulsions / Epilepsy Seizure',
+  'Heat Stroke / Severe Dehydration',
+  'Persistent Vomiting / Diarrhea',
+  'Drowning / Near-Drowning',
+  'Electric Shock / Electrocution',
+  'Obstetric / Pregnancy Hemorrhage',
+  'Sudden Facial Weakness / Paralysis',
+  'Severe Eye Trauma / Chemical Splash',
 ];
 
 export const EmergencyQuickInput: React.FC<QuickInputProps> = ({ formData, onChange }) => {

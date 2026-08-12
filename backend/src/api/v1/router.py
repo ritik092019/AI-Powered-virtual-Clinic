@@ -9,6 +9,8 @@ from src.api.v1.endpoints import (
     ai,
     doctor_requests,
     notifications,
+    emergency,
+    patient_summary,
     health,
     websocket,
 )
@@ -25,4 +27,6 @@ api_v1_router.include_router(vitals.router)
 api_v1_router.include_router(ai.router)
 api_v1_router.include_router(doctor_requests.router)
 api_v1_router.include_router(notifications.router)
+api_v1_router.include_router(emergency.router)
+api_v1_router.include_router(patient_summary.router)
 api_v1_router.include_router(websocket.router)

@@ -47,6 +47,16 @@ export const RegionalVoiceAssistantModal: React.FC<RegionalVoiceAssistantModalPr
   const [transcriptText, setTranscriptText] = useState('');
   const [aiResult, setAiResult] = useState<VoiceAssistantResponseData | null>(null);
 
+  // Reset state when modal is opened
+  useEffect(() => {
+    if (isOpen) {
+      setRecordingState('idle');
+      setRecordingSeconds(0);
+      setTranscriptText('');
+      setAiResult(null);
+    }
+  }, [isOpen]);
+
   // Timer effect when recording
   useEffect(() => {
     let timer: any = null;
@@ -65,11 +75,25 @@ export const RegionalVoiceAssistantModal: React.FC<RegionalVoiceAssistantModalPr
     setRecordingState('recording');
   };
 
-  const handleStopRecording = () => {
+  const handleStopRecording = async () => {
     setRecordingState('processing');
-    const mockSpeech = voiceAssistantService.getMockTranscript(selectedLanguage);
-    setTranscriptText(mockSpeech);
-    setTimeout(() => setRecordingState('idle'), 600);
+    const speechText = transcriptText.trim() || voiceAssistantService.getMockTranscript(selectedLanguage);
+    setTranscriptText(speechText);
+
+    try {
+      const res = await voiceAssistantService.processVoiceAssistant({
+        language: selectedLanguage,
+        user_transcript: speechText,
+        user_role: role,
+      });
+      setAiResult(res);
+      setRecordingState('result');
+    } catch (err) {
+      console.warn('Voice assistant error fallback:', err);
+      const fallback = voiceAssistantService.getMockResponse(selectedLanguage, speechText, role);
+      setAiResult(fallback);
+      setRecordingState('result');
+    }
   };
 
   const handleSubmitForAI = async () => {
@@ -83,7 +107,7 @@ export const RegionalVoiceAssistantModal: React.FC<RegionalVoiceAssistantModalPr
       setAiResult(res);
       setRecordingState('result');
     } catch (err) {
-      console.error('Voice assistant error', err);
+      console.warn('Voice assistant error fallback:', err);
       const fallback = voiceAssistantService.getMockResponse(selectedLanguage, transcriptText, role);
       setAiResult(fallback);
       setRecordingState('result');

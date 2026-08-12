@@ -5,7 +5,11 @@ import { StatusBadge } from '../components/ui/StatusBadge';
 import { SourceBadge } from '../components/common/SourceBadge';
 import { HealthcareSafetyNotice } from '../components/common/HealthcareSafetyNotice';
 import { RegionalVoiceAssistantModal } from '../components/common/RegionalVoiceAssistantModal';
+import { EmergencySOSModal } from '../components/common/EmergencySOSModal';
+import { EmergencyViewModal } from '../components/emergency/EmergencyViewModal';
+import { PersonalAIHealthSummaryModal } from '../components/common/PersonalAIHealthSummaryModal';
 import { PatientDoctorConsultationSection } from '../components/patients/PatientDoctorConsultationSection';
+import { FamilyTrustedContactSection } from '../components/patients/FamilyTrustedContactSection';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useNotification } from '../context/NotificationContext';
@@ -49,10 +53,17 @@ export const PatientDashboard: React.FC = () => {
   const [documents, setDocuments] = useState<MedicalDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // New appointment modal state
+  // Modal states
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isVoiceAssistantOpen, setIsVoiceAssistantOpen] = useState(false);
+  const [isEmergencySOSOpen, setIsEmergencySOSOpen] = useState(false);
+  const [isEmergencyRapidViewOpen, setIsEmergencyRapidViewOpen] = useState(false);
+  const [isHealthSummaryOpen, setIsHealthSummaryOpen] = useState(false);
   const [newAptType, setNewAptType] = useState<'tele_consultation' | 'in_person_visit'>('tele_consultation');
+  const [newAptDoctorSpecialty, setNewAptDoctorSpecialty] = useState('General Physician / Family Doctor');
+  const [newAptSeverity, setNewAptSeverity] = useState('Moderate');
+  const [newAptLanguage, setNewAptLanguage] = useState('Hindi');
+  const [newAptAttachReports, setNewAptAttachReports] = useState(true);
   const [newAptDate, setNewAptDate] = useState('2026-08-20');
   const [newAptTime, setNewAptTime] = useState('11:00 AM');
   const [newAptComplaint, setNewAptComplaint] = useState('');
@@ -131,15 +142,15 @@ export const PatientDashboard: React.FC = () => {
       id: `APT-2026-0${appointments.length + 1}`,
       patientId: user?.patientId || 'PAT-1082',
       patientName: user?.name || 'Ramesh Patel',
-      doctorName: newAptType === 'tele_consultation' ? 'Dr. Rajesh Verma (Tele-Doctor)' : 'Anita Sharma (ANM)',
-      doctorSpecialty: newAptType === 'tele_consultation' ? 'General Physician' : 'Primary Health Worker',
+      doctorName: newAptType === 'tele_consultation' ? `Dr. Rajesh Verma (${newAptDoctorSpecialty})` : 'Anita Sharma (ANM)',
+      doctorSpecialty: newAptDoctorSpecialty,
       facilityName: newAptType === 'tele_consultation' ? 'District Telemedicine Hub' : 'Sub-Health Centre Village Rampur',
       date: newAptDate,
       time: newAptTime,
       type: newAptType,
       status: 'scheduled',
       chiefComplaint: newAptComplaint,
-      notes: 'Request submitted via Patient Self-Service Portal.',
+      notes: `Consultation details: Severity [${newAptSeverity}], Language [${newAptLanguage}], Attach Reports [${newAptAttachReports ? 'Yes' : 'No'}]. Submitted via Portal.`,
     };
 
     setAppointments([newApt, ...appointments]);
@@ -204,6 +215,23 @@ export const PatientDashboard: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant="primary"
+              size="sm"
+              leftIcon={<Sparkles className="w-4 h-4 text-teal-300 animate-spin" />}
+              onClick={() => setIsHealthSummaryOpen(true)}
+              className="bg-teal-500 hover:bg-teal-400 text-slate-950 font-black shrink-0 text-xs shadow-lg border border-teal-300"
+            >
+              ✨ Generate My Health Summary
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => setIsEmergencySOSOpen(true)}
+              className="bg-rose-600 hover:bg-rose-700 text-white font-black shrink-0 text-xs shadow-lg animate-pulse border border-rose-400"
+            >
+              🆘 EMERGENCY SOS
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -303,52 +331,47 @@ export const PatientDashboard: React.FC = () => {
       <div className="flex border-b border-slate-200 space-x-2 text-sm font-semibold flex-wrap">
         <button
           onClick={() => setActiveTab('overview')}
-          className={`pb-2.5 px-3 border-b-2 transition-colors ${
-            activeTab === 'overview'
+          className={`pb-2.5 px-3 border-b-2 transition-colors ${activeTab === 'overview'
               ? 'border-teal-600 text-teal-800 font-extrabold'
               : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
+            }`}
         >
           Portal Overview
         </button>
         <button
           onClick={() => setActiveTab('doctor_consultation')}
-          className={`pb-2.5 px-3 border-b-2 transition-colors flex items-center gap-1.5 ${
-            activeTab === 'doctor_consultation'
+          className={`pb-2.5 px-3 border-b-2 transition-colors flex items-center gap-1.5 ${activeTab === 'doctor_consultation'
               ? 'border-purple-600 text-purple-900 font-extrabold'
               : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
+            }`}
         >
           <Stethoscope className="w-4 h-4 text-purple-600" />
           Doctor Consultations & Advice
         </button>
         <button
           onClick={() => setActiveTab('history')}
-          className={`pb-2.5 px-3 border-b-2 transition-colors ${
-            activeTab === 'history'
+          className={`pb-2.5 px-3 border-b-2 transition-colors ${activeTab === 'history'
               ? 'border-teal-600 text-teal-800 font-extrabold'
               : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
+            }`}
         >
           My Medical History & Medications
         </button>
         <button
           onClick={() => setActiveTab('appointments')}
-          className={`pb-2.5 px-3 border-b-2 transition-colors ${
-            activeTab === 'appointments'
+          className={`pb-2.5 px-3 border-b-2 transition-colors ${activeTab === 'appointments'
               ? 'border-teal-600 text-teal-800 font-extrabold'
               : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
+            }`}
         >
           Upcoming Appointments ({appointments.filter((a) => a.status === 'scheduled' || a.status === 'confirmed').length})
         </button>
         <button
           onClick={() => setActiveTab('documents')}
-          className={`pb-2.5 px-3 border-b-2 transition-colors ${
-            activeTab === 'documents'
+          className={`pb-2.5 px-3 border-b-2 transition-colors ${activeTab === 'documents'
               ? 'border-teal-600 text-teal-800 font-extrabold'
               : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
+            }`}
         >
           Health Documents & Lab Reports ({documents.length})
         </button>
@@ -356,69 +379,73 @@ export const PatientDashboard: React.FC = () => {
 
       {/* TAB CONTENT: OVERVIEW */}
       {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Column (8 cols): Appointments & Latest Doctor Notes */}
-          <div className="lg:col-span-8 space-y-6">
-            {/* Next Scheduled Appointment Card */}
-            <Card variant="default">
-              <CardHeader className="border-b border-slate-100 pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <Calendar className="w-5 h-5 text-teal-700" /> Next Scheduled Visit / Tele-Consult
-                  </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="xs"
-                    onClick={() => setIsBookingOpen(true)}
-                    leftIcon={<Plus className="w-3.5 h-3.5" />}
-                  >
-                    Book Appointment
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-4">
-                {appointments.filter((a) => a.status === 'scheduled' || a.status === 'confirmed').length === 0 ? (
-                  <p className="text-xs text-slate-500 py-4 text-center">No upcoming appointments scheduled.</p>
-                ) : (
-                  appointments
-                    .filter((a) => a.status === 'scheduled' || a.status === 'confirmed')
-                    .slice(0, 2)
-                    .map((apt) => (
-                      <div key={apt.id} className="p-4 rounded-xl border border-teal-200/80 bg-teal-50/40 space-y-3 mb-3">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-teal-200/60 pb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-900 text-sm">{apt.doctorName}</span>
-                            <span className="text-xs text-slate-500">({apt.doctorSpecialty})</span>
+        <div className="space-y-6">
+          {/* Family & Trusted Emergency Contacts Section */}
+          <FamilyTrustedContactSection />
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left Column (8 cols): Appointments & Latest Doctor Notes */}
+            <div className="lg:col-span-8 space-y-6">
+              {/* Next Scheduled Appointment Card */}
+              <Card variant="default">
+                <CardHeader className="border-b border-slate-100 pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Calendar className="w-5 h-5 text-teal-700" /> Next Scheduled Visit / Tele-Consult
+                    </CardTitle>
+                    <Button
+                      variant="outline"
+                      size="xs"
+                      onClick={() => setIsBookingOpen(true)}
+                      leftIcon={<Plus className="w-3.5 h-3.5" />}
+                    >
+                      Book Appointment
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  {appointments.filter((a) => a.status === 'scheduled' || a.status === 'confirmed').length === 0 ? (
+                    <p className="text-xs text-slate-500 py-4 text-center">No upcoming appointments scheduled.</p>
+                  ) : (
+                    appointments
+                      .filter((a) => a.status === 'scheduled' || a.status === 'confirmed')
+                      .slice(0, 2)
+                      .map((apt) => (
+                        <div key={apt.id} className="p-4 rounded-xl border border-teal-200/80 bg-teal-50/40 space-y-3 mb-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-teal-200/60 pb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-slate-900 text-sm">{apt.doctorName}</span>
+                              <span className="text-xs text-slate-500">({apt.doctorSpecialty})</span>
+                            </div>
+                            <span className="px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 text-xs font-bold border border-teal-200">
+                              {apt.status.toUpperCase()}
+                            </span>
                           </div>
-                          <span className="px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 text-xs font-bold border border-teal-200">
-                            {apt.status.toUpperCase()}
-                          </span>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                            <div className="flex items-center gap-2 text-slate-700">
+                              <Calendar className="w-4 h-4 text-teal-600 shrink-0" />
+                              <span>Date: <strong>{apt.date}</strong> at <strong>{apt.time}</strong></span>
+                            </div>
+                            <div className="flex items-center gap-2 text-slate-700">
+                              <MapPin className="w-4 h-4 text-teal-600 shrink-0" />
+                              <span>Facility: <strong>{apt.facilityName}</strong></span>
+                            </div>
+                          </div>
+
+                          {apt.chiefComplaint && (
+                            <p className="text-xs text-slate-600 bg-white p-2.5 rounded-lg border border-teal-100">
+                              <strong>Reason:</strong> {apt.chiefComplaint}
+                            </p>
+                          )}
                         </div>
+                      ))
+                  )}
+                </CardContent>
+              </Card>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                          <div className="flex items-center gap-2 text-slate-700">
-                            <Calendar className="w-4 h-4 text-teal-600 shrink-0" />
-                            <span>Date: <strong>{apt.date}</strong> at <strong>{apt.time}</strong></span>
-                          </div>
-                          <div className="flex items-center gap-2 text-slate-700">
-                            <MapPin className="w-4 h-4 text-teal-600 shrink-0" />
-                            <span>Facility: <strong>{apt.facilityName}</strong></span>
-                          </div>
-                        </div>
-
-                        {apt.chiefComplaint && (
-                          <p className="text-xs text-slate-600 bg-white p-2.5 rounded-lg border border-teal-100">
-                            <strong>Reason:</strong> {apt.chiefComplaint}
-                          </p>
-                        )}
-                      </div>
-                    ))
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Doctor Consultation History & Prescriptions */}
-            <Card variant="default">
+              {/* Doctor Consultation History & Prescriptions */}
+              <Card variant="default">
               <CardHeader className="border-b border-slate-100 pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Stethoscope className="w-5 h-5 text-indigo-700" /> Recent Doctor Diagnoses & Advice
@@ -509,7 +536,8 @@ export const PatientDashboard: React.FC = () => {
             </Card>
           </div>
         </div>
-      )}
+      </div>
+    )}
 
       {/* TAB CONTENT: DOCTOR CONSULTATION & ADVICE */}
       {activeTab === 'doctor_consultation' && <PatientDoctorConsultationSection />}
@@ -581,11 +609,10 @@ export const PatientDashboard: React.FC = () => {
               <Card key={apt.id} variant="default" className="p-4 space-y-3 border-teal-100">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                   <span className="text-xs font-mono font-bold text-teal-800">{apt.id}</span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                    apt.status === 'scheduled' || apt.status === 'confirmed'
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${apt.status === 'scheduled' || apt.status === 'confirmed'
                       ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                       : 'bg-slate-100 text-slate-600'
-                  }`}>
+                    }`}>
                     {apt.status.toUpperCase()}
                   </span>
                 </div>
@@ -684,25 +711,68 @@ export const PatientDashboard: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setNewAptType('tele_consultation')}
-                    className={`p-2.5 rounded-xl border text-center font-bold transition-all ${
-                      newAptType === 'tele_consultation'
+                    className={`p-2.5 rounded-xl border text-center font-bold transition-all ${newAptType === 'tele_consultation'
                         ? 'bg-teal-50 border-teal-600 text-teal-900 shadow-xs'
                         : 'bg-slate-50 border-slate-200 text-slate-600'
-                    }`}
+                      }`}
                   >
                     Tele-Doctor Call
                   </button>
                   <button
                     type="button"
                     onClick={() => setNewAptType('in_person_visit')}
-                    className={`p-2.5 rounded-xl border text-center font-bold transition-all ${
-                      newAptType === 'in_person_visit'
+                    className={`p-2.5 rounded-xl border text-center font-bold transition-all ${newAptType === 'in_person_visit'
                         ? 'bg-teal-50 border-teal-600 text-teal-900 shadow-xs'
                         : 'bg-slate-50 border-slate-200 text-slate-600'
-                    }`}
+                      }`}
                   >
                     Sub-Center Visit
                   </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Doctor Specialty</label>
+                <select
+                  value={newAptDoctorSpecialty}
+                  onChange={(e) => setNewAptDoctorSpecialty(e.target.value)}
+                  className="w-full p-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500/20 focus:outline-none text-xs font-semibold"
+                >
+                  <option value="General Physician / Family Doctor">General Physician / Family Doctor</option>
+                  <option value="Cardiologist (Heart Specialist)">Cardiologist (Heart Specialist)</option>
+                  <option value="Pulmonologist (Chest & Respiratory)">Pulmonologist (Chest & Respiratory)</option>
+                  <option value="Diabetologist / Endocrinologist">Diabetologist / Endocrinologist</option>
+                  <option value="Pediatrician (Child Specialist)">Pediatrician (Child Specialist)</option>
+                  <option value="Gynecologist / Maternal Specialist">Gynecologist / Maternal Specialist</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Symptom Severity</label>
+                  <select
+                    value={newAptSeverity}
+                    onChange={(e) => setNewAptSeverity(e.target.value)}
+                    className="w-full p-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500/20 focus:outline-none text-xs font-medium"
+                  >
+                    <option value="Mild (Routine Checkup)">Mild (Routine Checkup)</option>
+                    <option value="Moderate (Persistent Symptoms)">Moderate (Persistent Symptoms)</option>
+                    <option value="Urgent (Acute Pain / High Fever)">Urgent (Acute Pain / High Fever)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Preferred Language</label>
+                  <select
+                    value={newAptLanguage}
+                    onChange={(e) => setNewAptLanguage(e.target.value)}
+                    className="w-full p-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500/20 focus:outline-none text-xs font-medium"
+                  >
+                    <option value="Hindi">Hindi (हिन्दी)</option>
+                    <option value="Telugu">Telugu (తెలుగు)</option>
+                    <option value="Tamil">Tamil (தமிழ்)</option>
+                    <option value="Marathi">Marathi (मराठी)</option>
+                    <option value="English">English</option>
+                  </select>
                 </div>
               </div>
 
@@ -724,10 +794,10 @@ export const PatientDashboard: React.FC = () => {
                     onChange={(e) => setNewAptTime(e.target.value)}
                     className="w-full p-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
                   >
-                    <option value="09:30 AM">09:30 AM</option>
-                    <option value="11:00 AM">11:00 AM</option>
-                    <option value="02:30 PM">02:30 PM</option>
-                    <option value="04:00 PM">04:00 PM</option>
+                    <option value="09:30 AM">09:30 AM (Morning)</option>
+                    <option value="11:00 AM">11:00 AM (Morning)</option>
+                    <option value="02:30 PM">02:30 PM (Afternoon)</option>
+                    <option value="04:00 PM">04:00 PM (Evening)</option>
                   </select>
                 </div>
               </div>
@@ -741,6 +811,16 @@ export const PatientDashboard: React.FC = () => {
                   onChange={(e) => setNewAptComplaint(e.target.value)}
                   className="w-full p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
                   required
+                />
+              </div>
+
+              <div className="p-3 bg-teal-50 rounded-xl border border-teal-200 flex items-center justify-between text-xs">
+                <span className="font-bold text-teal-950">Auto-Attach Scanned Medical Reports & Prescriptions to Doctor</span>
+                <input
+                  type="checkbox"
+                  checked={newAptAttachReports}
+                  onChange={(e) => setNewAptAttachReports(e.target.checked)}
+                  className="w-4 h-4 text-teal-600 rounded focus:ring-teal-500"
                 />
               </div>
 
@@ -761,6 +841,26 @@ export const PatientDashboard: React.FC = () => {
       <RegionalVoiceAssistantModal
         isOpen={isVoiceAssistantOpen}
         onClose={() => setIsVoiceAssistantOpen(false)}
+      />
+
+      {/* Emergency SOS Response Screen */}
+      <EmergencySOSModal
+        isOpen={isEmergencySOSOpen}
+        onClose={() => setIsEmergencySOSOpen(false)}
+        patient={patient}
+      />
+
+      {/* Personal AI Health Summary Modal */}
+      <PersonalAIHealthSummaryModal
+        isOpen={isHealthSummaryOpen}
+        onClose={() => setIsHealthSummaryOpen(false)}
+        patient={patient}
+      />
+
+      {/* Rapid Emergency Intake & Doctor High Alert Modal */}
+      <EmergencyViewModal
+        isOpen={isEmergencyRapidViewOpen}
+        onClose={() => setIsEmergencyRapidViewOpen(false)}
       />
     </div>
   );

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import require_admin
+from app.common.enums import UserRole
 from app.users.models import User
 from app.admin.schemas import (
     AdminUserCreate,

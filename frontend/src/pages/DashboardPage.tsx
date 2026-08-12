@@ -422,8 +422,8 @@ export const DashboardPage: React.FC = () => {
               </Card>
 
               {/* Application Activity Timeline under Clinical Workflows */}
-              <Card variant="default">
-                <CardHeader className="pb-3 border-b border-slate-100">
+              {/* <Card variant="default"> */}
+              {/* <CardHeader className="pb-3 border-b border-slate-100">
                   <div className="flex items-center justify-between">
                     <CardTitle>Recent Application Activity</CardTitle>
                     <Sparkles className="w-4 h-4 text-teal-600" />
@@ -431,12 +431,12 @@ export const DashboardPage: React.FC = () => {
                   <CardDescription>
                     Real-time operational log of registrations, consultations, OCR scans, and doctor requests.
                   </CardDescription>
-                </CardHeader>
-
+                </CardHeader> */}
+              {/* 
                 <CardContent className="pt-4">
                   <ActivityTimeline events={MOCK_ACTIVITY_TIMELINE} />
-                </CardContent>
-              </Card>
+                </CardContent> */}
+              {/* </Card> */}
             </div>
 
             {/* Right Column (1/3): System Settings & Telemetry */}

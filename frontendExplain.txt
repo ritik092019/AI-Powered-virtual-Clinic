@@ -1,0 +1,56 @@
+AI-Powered Virtual Clinic: Frontend Architecture & Flow
+
+This document explains how the frontend of the application works from start to finish.
+
+1. THE ENTRY POINT (Initialization)
+-----------------------------------
+- index.html: This is the file the browser loads first. It contains a `<div id="root"></div>` and a script tag that points to `src/main.tsx`.
+- src/main.tsx: This is the React entry point. It targets the `root` div from the HTML and renders the main `<App />` component using React 19's `createRoot`. It also imports `index.css` which initializes TailwindCSS.
+
+2. GLOBAL STATE & CONTEXT PROVIDERS (App.tsx)
+---------------------------------------------
+In `src/App.tsx`, the application is wrapped in several Context Providers. These providers manage global state that any component in the app can access without passing props down manually:
+- <BrowserRouter>: Enables client-side routing using `react-router-dom`.
+- <AuthProvider>: Manages user authentication (login state, current user details, role).
+- <LanguageProvider>: Manages the current selected language for internationalization/translations.
+- <NotificationProvider>: Manages global toast messages and notification alerts.
+- <AppRoutes>: The component where all the URL paths are defined.
+
+3. ROUTING & SECURITY (AppRoutes.tsx & ProtectedRoute.tsx)
+----------------------------------------------------------
+The app uses a URL-based routing system. 
+- AppRoutes.tsx: Maps specific URLs to specific Page components (e.g., `/login` maps to `LoginPage`, `/dashboard` maps to `DashboardPage`).
+- ProtectedRoute.tsx: A wrapper component used in `AppRoutes`. It checks if a user is authenticated (via AuthContext). If they aren't, it redirects them to the login page. It also handles role-based access (e.g., making sure a Health Worker can't access a Doctor-only dashboard).
+
+4. PAGES (src/pages)
+--------------------
+When a route is matched, a Page component is loaded. These are large components representing an entire screen. Key pages include:
+- LoginPage: Where users authenticate.
+- DashboardPage / DoctorDashboardPage / PatientDashboardPage: Role-specific home screens showing overviews, stats, and quick actions.
+- ConsultationsPage / NewConsultationPage: Where health workers or doctors manage and start new consultations.
+- AIAssessmentPage: Interfaces with the AI for initial patient assessments.
+
+5. REUSABLE UI COMPONENTS (src/components)
+------------------------------------------
+Pages are built by combining smaller, reusable pieces of UI stored in the components folder (like Buttons, Modals, Input fields, Navigation Bars). This keeps the code DRY (Don't Repeat Yourself) and consistent.
+
+6. DATA FETCHING & BACKEND COMMUNICATION (src/services/apiClient.ts)
+--------------------------------------------------------------------
+When a page or component needs data (like fetching a list of patients), it calls a function from the services folder.
+- apiClient.ts: This file provides a clean wrapper around the native browser `fetch` API for making GET, POST, PUT, and DELETE requests.
+- Vite Proxy (vite.config.ts): To avoid CORS (Cross-Origin Resource Sharing) errors during development, Vite is configured to intercept any request starting with `/api` and silently forward it to the Python backend running on `http://127.0.0.1:8000`. 
+
+7. STYLING (Tailwind CSS)
+-------------------------
+The app uses Tailwind CSS (v4) for styling. Instead of writing custom CSS files, developers use utility classes directly in the TSX files (e.g., `className="flex items-center text-blue-500"`). The Vite plugin `@tailwindcss/vite` processes these classes and generates the final CSS automatically.
+
+SUMMARY OF THE USER FLOW
+------------------------
+1. User visits the site -> `index.html` loads -> `main.tsx` boots React.
+2. `App.tsx` sets up all global states (Auth, Language, Routing).
+3. `AppRoutes` checks the URL (e.g., `/`).
+4. If not logged in, `ProtectedRoute` redirects to `/login` (loads `LoginPage`).
+5. User enters credentials -> calls backend via `apiClient.ts` -> backend verifies -> `AuthContext` updates user state to "logged in".
+6. User is redirected to their specific dashboard (`DashboardPage`).
+7. The dashboard makes API calls via `apiClient` to fetch data (patients, notifications) which are passed through the proxy to the FastAPI backend.
+8. The UI renders the fetched data using Tailwind-styled components.

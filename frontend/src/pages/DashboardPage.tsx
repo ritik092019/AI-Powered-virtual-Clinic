@@ -386,7 +386,7 @@ export const DashboardPage: React.FC = () => {
             {/* Left Column (2/3): Pending Doctor Requests & Attention Required */}
             <div className="lg:col-span-2 space-y-6">
               {/* Attention Required Workflow Section */}
-              <Card variant="default">
+              {/* <Card variant="default">
                 <CardHeader className="pb-3 border-b border-slate-100 flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <div className="p-1.5 rounded-lg bg-amber-100 text-amber-800">
@@ -419,7 +419,7 @@ export const DashboardPage: React.FC = () => {
                     />
                   ))}
                 </CardContent>
-              </Card>
+              </Card> */}
 
               {/* Application Activity Timeline under Clinical Workflows */}
               {/* <Card variant="default"> */}
@@ -442,7 +442,7 @@ export const DashboardPage: React.FC = () => {
             {/* Right Column (1/3): System Settings & Telemetry */}
             <div className="space-y-6">
               {/* Sub-Health Centre Telemetry Widget (System Settings) */}
-              <Card variant="flat" className="p-5 space-y-3 bg-gradient-to-br from-slate-900 to-slate-800 text-white border-slate-800">
+              {/* <Card variant="flat" className="p-5 space-y-3 bg-gradient-to-br from-slate-900 to-slate-800 text-white border-slate-800">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Wifi className="w-4 h-4 text-emerald-400" />
@@ -484,7 +484,7 @@ export const DashboardPage: React.FC = () => {
                 >
                   Verify Offline Cache & Settings
                 </Button>
-              </Card>
+              </Card> */}
             </div>
           </div>
         </>

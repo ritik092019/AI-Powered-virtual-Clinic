@@ -252,17 +252,16 @@ export const DoctorCasePage: React.FC = () => {
           {/* AI Risk & Assessment Cards */}
           <AIAssessmentSummaryCard assessment={aiData?.assessment} />
 
-          {aiData?.risk && <RiskAssessmentCard risk={aiData.risk} />}
+          {/* {aiData?.risk && <RiskAssessmentCard risk={aiData.risk} />} */}
 
           {/* Tabs for Action Workstation: Prescription Form vs Live Tele-Chat */}
           <div className="bg-slate-100 p-1.5 rounded-2xl flex items-center gap-2">
             <button
               onClick={() => setActiveTab('rx_form')}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${
-                activeTab === 'rx_form'
-                  ? 'bg-white text-blue-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
+              className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${activeTab === 'rx_form'
+                ? 'bg-white text-blue-900 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+                }`}
             >
               <Stethoscope className="w-4 h-4 text-blue-700" />
               Prescription & Authorization Form
@@ -270,11 +269,10 @@ export const DoctorCasePage: React.FC = () => {
 
             <button
               onClick={() => setActiveTab('tele_chat')}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${
-                activeTab === 'tele_chat'
-                  ? 'bg-white text-teal-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
+              className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${activeTab === 'tele_chat'
+                ? 'bg-white text-teal-900 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+                }`}
             >
               <MessageSquare className="w-4 h-4 text-teal-700" />
               Live Tele-Doctor Chat

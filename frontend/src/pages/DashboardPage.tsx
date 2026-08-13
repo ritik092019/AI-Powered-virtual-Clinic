@@ -25,6 +25,7 @@ import { Tabs } from '../components/ui/Tabs';
 import { Input } from '../components/ui/Input';
 import { HealthcareSafetyNotice } from '../components/common/HealthcareSafetyNotice';
 import { RegionalVoiceAssistantModal } from '../components/common/RegionalVoiceAssistantModal';
+import { RuralHealthcareSection } from '../components/rural/RuralHealthcareSection';
 
 // Icons
 import {
@@ -367,7 +368,10 @@ export const DashboardPage: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Section 4: Secondary Multi-Column Dashboard Grid */}
+          {/* Section 4: Rural Healthcare Infrastructure & Medicine Stock Availability */}
+          <RuralHealthcareSection userRole="HEALTH_WORKER" defaultVillage="Ambikapur" />
+
+          {/* Section 5: Secondary Multi-Column Dashboard Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Left Column (2/3): Pending Doctor Requests & Attention Required */}
             <div className="lg:col-span-2 space-y-6">

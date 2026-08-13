@@ -25,3 +25,14 @@ export const HEALTHCARE_SAFETY_DISCLAIMER = {
   short: 'Arogya Health AI is an clinical assistance tool designed for rural healthcare workers. It does not replace qualified medical diagnosis.',
   full: 'This platform provides AI-assisted decision support and triage recommendations for frontline health workers. It is intended to complement, not replace, clinical judgment by qualified medical practitioners.',
 };
+
+export const API_BASE_URL = (import.meta.env as any).VITE_API_URL || 'http://localhost:8000/api/v1';
+
+export const getAuthHeaders = (): Record<string, string> => {
+  const token = localStorage.getItem('token') || localStorage.getItem('arogya_access_token') || localStorage.getItem('auth_token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
+

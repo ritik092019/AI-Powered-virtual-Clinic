@@ -34,6 +34,8 @@ from app.images.router import router as images_router
 from app.risk.router import router as risk_router
 from app.protocols.router import router as protocols_router
 from app.admin.router import router as admin_router
+from app.appointments.router import router as appointments_router
+from app.rural_healthcare.router import router as rural_healthcare_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -104,6 +106,8 @@ app.include_router(documents_router, prefix=api_v1_prefix)
 app.include_router(images_router, prefix=api_v1_prefix)
 app.include_router(risk_router, prefix=api_v1_prefix)
 app.include_router(protocols_router, prefix=api_v1_prefix)
+app.include_router(appointments_router, prefix=api_v1_prefix)
+app.include_router(rural_healthcare_router, prefix=api_v1_prefix)
 from src.api.v1.endpoints.patient_summary import router as patient_summary_router
 
 app.include_router(patient_summary_router, prefix=api_v1_prefix)

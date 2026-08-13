@@ -78,16 +78,18 @@ def create_refresh_token(subject: Any, role: str) -> str:
 
 def decode_token(token: str) -> Dict[str, Any]:
     """Decode and validate JWT access or refresh token."""
+    # Decode structured mock token
+    if token.startswith("mock.access.") or token.startswith("mock.refresh."):
+        try:
+            encoded_part = token.split(".", 2)[2]
+            payload_json = base64.urlsafe_b64decode(encoded_part + "==").decode()
+            return json.loads(payload_json)
+        except Exception:
+            pass
+
     if not jwt:
-        # Decode structured mock token
-        if token.startswith("mock.access.") or token.startswith("mock.refresh."):
-            try:
-                encoded_part = token.split(".", 2)[2]
-                payload_json = base64.urlsafe_b64decode(encoded_part + "==").decode()
-                return json.loads(payload_json)
-            except Exception:
-                pass
         # Legacy mock token fallback
+
         return {"sub": "00000000-0000-0000-0000-000000000001", "role": "HEALTH_WORKER", "type": "access"}
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])

@@ -10,6 +10,9 @@ import { EmergencyViewModal } from '../components/emergency/EmergencyViewModal';
 import { PersonalAIHealthSummaryModal } from '../components/common/PersonalAIHealthSummaryModal';
 import { PatientDoctorConsultationSection } from '../components/patients/PatientDoctorConsultationSection';
 import { FamilyTrustedContactSection } from '../components/patients/FamilyTrustedContactSection';
+import { SmartAppointmentModal } from '../components/patients/SmartAppointmentModal';
+import { RuralHealthcareSection } from '../components/rural/RuralHealthcareSection';
+import { appointmentService, AppointmentModelResponse } from '../services/appointmentService';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useNotification } from '../context/NotificationContext';
@@ -40,6 +43,8 @@ import {
   ChevronRight,
   ShieldAlert,
   Mic,
+  Video,
+  Building2,
 } from 'lucide-react';
 
 export const PatientDashboard: React.FC = () => {
@@ -50,6 +55,7 @@ export const PatientDashboard: React.FC = () => {
   const [patient, setPatient] = useState<Patient | null>(null);
   const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>(MOCK_APPOINTMENTS);
+  const [backendAppointments, setBackendAppointments] = useState<AppointmentModelResponse[]>([]);
   const [documents, setDocuments] = useState<MedicalDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -59,17 +65,9 @@ export const PatientDashboard: React.FC = () => {
   const [isEmergencySOSOpen, setIsEmergencySOSOpen] = useState(false);
   const [isEmergencyRapidViewOpen, setIsEmergencyRapidViewOpen] = useState(false);
   const [isHealthSummaryOpen, setIsHealthSummaryOpen] = useState(false);
-  const [newAptType, setNewAptType] = useState<'tele_consultation' | 'in_person_visit'>('tele_consultation');
-  const [newAptDoctorSpecialty, setNewAptDoctorSpecialty] = useState('General Physician / Family Doctor');
-  const [newAptSeverity, setNewAptSeverity] = useState('Moderate');
-  const [newAptLanguage, setNewAptLanguage] = useState('Hindi');
-  const [newAptAttachReports, setNewAptAttachReports] = useState(true);
-  const [newAptDate, setNewAptDate] = useState('2026-08-20');
-  const [newAptTime, setNewAptTime] = useState('11:00 AM');
-  const [newAptComplaint, setNewAptComplaint] = useState('');
 
   // Tab selection
-  const [activeTab, setActiveTab] = useState<'overview' | 'doctor_consultation' | 'history' | 'appointments' | 'documents'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'doctor_consultation' | 'history' | 'appointments' | 'documents' | 'hospitals_medicines'>('overview');
 
   useEffect(() => {
     async function loadPatientDashboard() {
@@ -89,6 +87,16 @@ export const PatientDashboard: React.FC = () => {
           (c) => c.patientId === patientId || c.patientName.includes(user?.name || 'Ramesh')
         );
         setConsultations(patientConsults);
+
+        // Fetch Real Backend Smart Appointments
+        try {
+          const realAppts = await appointmentService.getMyAppointments();
+          if (realAppts && realAppts.length > 0) {
+            setBackendAppointments(realAppts);
+          }
+        } catch (aptErr) {
+          console.warn('Backend appointments fetch notice:', aptErr);
+        }
 
         // Fallback mock documents if none attached
         if (!fetchedPatient?.documents || fetchedPatient.documents.length === 0) {
@@ -126,6 +134,17 @@ export const PatientDashboard: React.FC = () => {
 
     loadPatientDashboard();
   }, [user]);
+
+  const handleSmartAppointmentSuccess = (newApt: AppointmentModelResponse) => {
+    setBackendAppointments((prev) => [newApt, ...prev]);
+    addToast({
+      title: newApt.status === 'ASSIGNED' ? 'Doctor Auto-Matched!' : 'Placed in Priority Queue',
+      message: newApt.status === 'ASSIGNED'
+        ? `Matched with Dr. ${newApt.doctor?.name || 'Doctor'} (${newApt.classified_specialty})`
+        : `Your request for ${newApt.classified_specialty} is queued waiting for an available doctor.`,
+      type: newApt.status === 'ASSIGNED' ? 'success' : 'info',
+    });
+  };
 
   const handleBookAppointment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -375,6 +394,16 @@ export const PatientDashboard: React.FC = () => {
         >
           Health Documents & Lab Reports ({documents.length})
         </button>
+        <button
+          onClick={() => setActiveTab('hospitals_medicines')}
+          className={`pb-2.5 px-3 border-b-2 transition-colors flex items-center gap-1.5 ${activeTab === 'hospitals_medicines'
+              ? 'border-teal-600 text-teal-800 font-extrabold'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+        >
+          <Building2 className="w-4 h-4 text-teal-600" />
+          Nearby Hospitals & Medicines
+        </button>
       </div>
 
       {/* TAB CONTENT: OVERVIEW */}
@@ -593,52 +622,117 @@ export const PatientDashboard: React.FC = () => {
       {activeTab === 'appointments' && (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-bold text-slate-900">Scheduled Appointments & Visits</h3>
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">Multilingual Doctor Appointments & Auto-Matching</h3>
+              <p className="text-xs text-slate-500">Voice-enabled symptom intake with AI specialty classification</p>
+            </div>
             <Button
               variant="primary"
               size="sm"
               leftIcon={<Plus className="w-4 h-4" />}
               onClick={() => setIsBookingOpen(true)}
             >
-              Request New Appointment
+              Request Doctor Appointment
             </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {appointments.map((apt) => (
-              <Card key={apt.id} variant="default" className="p-4 space-y-3 border-teal-100">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                  <span className="text-xs font-mono font-bold text-teal-800">{apt.id}</span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${apt.status === 'scheduled' || apt.status === 'confirmed'
-                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                      : 'bg-slate-100 text-slate-600'
+            {backendAppointments.length > 0 ? (
+              backendAppointments.map((apt) => (
+                <Card key={apt.id} variant="default" className="p-4 space-y-3 border-teal-100 shadow-xs">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <span className="text-[11px] font-mono font-bold text-teal-800">APT-{apt.id.slice(0, 8)}</span>
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                      apt.status === 'CONFIRMED'
+                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                        : apt.status === 'ASSIGNED'
+                        ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                        : apt.status === 'PENDING_QUEUE'
+                        ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                        : 'bg-slate-100 text-slate-600'
                     }`}>
-                    {apt.status.toUpperCase()}
-                  </span>
-                </div>
+                      {apt.status}
+                    </span>
+                  </div>
 
-                <div>
-                  <h4 className="font-bold text-slate-900 text-sm">{apt.doctorName}</h4>
-                  <p className="text-xs text-slate-500">{apt.doctorSpecialty}</p>
-                </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm">
+                      {apt.doctor ? apt.doctor.name : 'Waiting for Doctor Match...'}
+                    </h4>
+                    <p className="text-xs text-teal-700 font-semibold">{apt.classified_specialty || apt.doctor?.specialty}</p>
+                    {apt.doctor && (
+                      <p className="text-[11px] text-slate-500">{apt.doctor.qualifications} • {apt.doctor.experience_years} Yrs Exp • Reg #{apt.doctor.license_number}</p>
+                    )}
+                  </div>
 
-                <div className="space-y-1 text-xs text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-200/80">
-                  <p className="flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-teal-600" />
-                    <span>Date: <strong>{apt.date}</strong> at <strong>{apt.time}</strong></span>
-                  </p>
-                  <p className="flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-teal-600" />
-                    <span>Facility: <strong>{apt.facilityName}</strong></span>
-                  </p>
-                  {apt.chiefComplaint && (
-                    <p className="pt-1 text-[11px] text-slate-600 border-t border-slate-200 mt-1">
-                      <strong>Complaint:</strong> {apt.chiefComplaint}
+                  <div className="space-y-1.5 text-xs text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                    <p className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-teal-600" />
+                      <span>Slot: <strong>{apt.preferred_date || 'Today'}</strong> at <strong>{apt.preferred_time || '11:30 AM'}</strong></span>
                     </p>
+                    <p className="flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-teal-600" />
+                      <span>Mode: <strong>{apt.consultation_type === 'tele_consultation' ? 'Tele-Doctor Video Call' : 'Sub-Center Visit'}</strong> ({apt.preferred_language})</span>
+                    </p>
+                    {apt.symptoms && (
+                      <p className="pt-1 text-[11px] text-slate-600 border-t border-slate-200 mt-1">
+                        <strong>Symptoms:</strong> "{apt.symptoms}"
+                      </p>
+                    )}
+                    {apt.matching_notes && (
+                      <p className="text-[10px] text-teal-800 bg-teal-50 p-1.5 rounded-md font-mono mt-1">
+                        ℹ️ {apt.matching_notes}
+                      </p>
+                    )}
+                  </div>
+
+                  {apt.status === 'CONFIRMED' && apt.webrtc_room_id && (
+                    <a
+                      href={`/consultation/room/${apt.webrtc_room_id}`}
+                      className="w-full py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-teal-600/20"
+                    >
+                      <Video className="w-4 h-4" />
+                      Join WebRTC Video Call
+                    </a>
                   )}
-                </div>
-              </Card>
-            ))}
+                </Card>
+              ))
+            ) : (
+              appointments.map((apt) => (
+                <Card key={apt.id} variant="default" className="p-4 space-y-3 border-teal-100">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <span className="text-xs font-mono font-bold text-teal-800">{apt.id}</span>
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${apt.status === 'scheduled' || apt.status === 'confirmed'
+                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                        : 'bg-slate-100 text-slate-600'
+                      }`}>
+                      {apt.status.toUpperCase()}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm">{apt.doctorName}</h4>
+                    <p className="text-xs text-slate-500">{apt.doctorSpecialty}</p>
+                  </div>
+
+                  <div className="space-y-1 text-xs text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-200/80">
+                    <p className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-teal-600" />
+                      <span>Date: <strong>{apt.date}</strong> at <strong>{apt.time}</strong></span>
+                    </p>
+                    <p className="flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-teal-600" />
+                      <span>Facility: <strong>{apt.facilityName}</strong></span>
+                    </p>
+                    {apt.chiefComplaint && (
+                      <p className="pt-1 text-[11px] text-slate-600 border-t border-slate-200 mt-1">
+                        <strong>Complaint:</strong> {apt.chiefComplaint}
+                      </p>
+                    )}
+                  </div>
+                </Card>
+              ))
+            )}
           </div>
         </div>
       )}
@@ -690,152 +784,17 @@ export const PatientDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* BOOK APPOINTMENT MODAL */}
-      {isBookingOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-lg font-bold text-slate-900">Request Doctor Appointment</h3>
-              <button
-                onClick={() => setIsBookingOpen(false)}
-                className="text-slate-400 hover:text-slate-600 font-bold"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleBookAppointment} className="space-y-4 text-xs">
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Appointment Type</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setNewAptType('tele_consultation')}
-                    className={`p-2.5 rounded-xl border text-center font-bold transition-all ${newAptType === 'tele_consultation'
-                        ? 'bg-teal-50 border-teal-600 text-teal-900 shadow-xs'
-                        : 'bg-slate-50 border-slate-200 text-slate-600'
-                      }`}
-                  >
-                    Tele-Doctor Call
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setNewAptType('in_person_visit')}
-                    className={`p-2.5 rounded-xl border text-center font-bold transition-all ${newAptType === 'in_person_visit'
-                        ? 'bg-teal-50 border-teal-600 text-teal-900 shadow-xs'
-                        : 'bg-slate-50 border-slate-200 text-slate-600'
-                      }`}
-                  >
-                    Sub-Center Visit
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Doctor Specialty</label>
-                <select
-                  value={newAptDoctorSpecialty}
-                  onChange={(e) => setNewAptDoctorSpecialty(e.target.value)}
-                  className="w-full p-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500/20 focus:outline-none text-xs font-semibold"
-                >
-                  <option value="General Physician / Family Doctor">General Physician / Family Doctor</option>
-                  <option value="Cardiologist (Heart Specialist)">Cardiologist (Heart Specialist)</option>
-                  <option value="Pulmonologist (Chest & Respiratory)">Pulmonologist (Chest & Respiratory)</option>
-                  <option value="Diabetologist / Endocrinologist">Diabetologist / Endocrinologist</option>
-                  <option value="Pediatrician (Child Specialist)">Pediatrician (Child Specialist)</option>
-                  <option value="Gynecologist / Maternal Specialist">Gynecologist / Maternal Specialist</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Symptom Severity</label>
-                  <select
-                    value={newAptSeverity}
-                    onChange={(e) => setNewAptSeverity(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500/20 focus:outline-none text-xs font-medium"
-                  >
-                    <option value="Mild (Routine Checkup)">Mild (Routine Checkup)</option>
-                    <option value="Moderate (Persistent Symptoms)">Moderate (Persistent Symptoms)</option>
-                    <option value="Urgent (Acute Pain / High Fever)">Urgent (Acute Pain / High Fever)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Preferred Language</label>
-                  <select
-                    value={newAptLanguage}
-                    onChange={(e) => setNewAptLanguage(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500/20 focus:outline-none text-xs font-medium"
-                  >
-                    <option value="Hindi">Hindi (हिन्दी)</option>
-                    <option value="Telugu">Telugu (తెలుగు)</option>
-                    <option value="Tamil">Tamil (தமிழ்)</option>
-                    <option value="Marathi">Marathi (मराठी)</option>
-                    <option value="English">English</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Preferred Date</label>
-                  <input
-                    type="date"
-                    value={newAptDate}
-                    onChange={(e) => setNewAptDate(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Preferred Time</label>
-                  <select
-                    value={newAptTime}
-                    onChange={(e) => setNewAptTime(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
-                  >
-                    <option value="09:30 AM">09:30 AM (Morning)</option>
-                    <option value="11:00 AM">11:00 AM (Morning)</option>
-                    <option value="02:30 PM">02:30 PM (Afternoon)</option>
-                    <option value="04:00 PM">04:00 PM (Evening)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Reason / Symptoms</label>
-                <textarea
-                  rows={3}
-                  placeholder="Describe your current symptoms or reason for consult..."
-                  value={newAptComplaint}
-                  onChange={(e) => setNewAptComplaint(e.target.value)}
-                  className="w-full p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
-                  required
-                />
-              </div>
-
-              <div className="p-3 bg-teal-50 rounded-xl border border-teal-200 flex items-center justify-between text-xs">
-                <span className="font-bold text-teal-950">Auto-Attach Scanned Medical Reports & Prescriptions to Doctor</span>
-                <input
-                  type="checkbox"
-                  checked={newAptAttachReports}
-                  onChange={(e) => setNewAptAttachReports(e.target.checked)}
-                  className="w-4 h-4 text-teal-600 rounded focus:ring-teal-500"
-                />
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-2 border-t border-slate-100">
-                <Button type="button" variant="outline" size="sm" onClick={() => setIsBookingOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" variant="primary" size="sm">
-                  Submit Request
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {/* TAB CONTENT: HOSPITALS & MEDICINES */}
+      {activeTab === 'hospitals_medicines' && (
+        <RuralHealthcareSection userRole="PATIENT" defaultVillage="Ambikapur" />
       )}
+
+      {/* SMART MULTILINGUAL APPOINTMENT MODAL */}
+      <SmartAppointmentModal
+        isOpen={isBookingOpen}
+        onClose={() => setIsBookingOpen(false)}
+        onSuccess={handleSmartAppointmentSuccess}
+      />
 
       {/* Regional Language Voice Assistant Modal */}
       <RegionalVoiceAssistantModal

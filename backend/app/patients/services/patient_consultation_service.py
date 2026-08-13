@@ -1,3 +1,7 @@
+import logging
+import uuid
+from datetime import datetime, timezone
+from typing import List, Optional
 from sqlalchemy.orm import Session
 from app.consultations.models import Consultation
 from app.users.models import User
